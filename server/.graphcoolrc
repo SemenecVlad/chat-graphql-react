@@ -1,0 +1,3 @@
+targets:
+  chat-app: shared-eu-west-1/cjhujp4fe1a1x0149hkdroall
+  default: chat-app
