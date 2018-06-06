@@ -7,7 +7,7 @@ import App from './App';
 import registerServiceWorker from './registerServiceWorker';
 
 export const client = new ApolloClient({
-    uri: 'https://api.graph.cool/simple/v1/cjhujp4fe1a1x0149hkdroall'
+    uri: 'https://api.graph.cool/simple/v1/cji3486nr3q4b0191ifdu8j6x'
 });
 
 

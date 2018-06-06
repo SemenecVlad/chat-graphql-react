@@ -65,13 +65,13 @@ const ALL_POSTS_QUERY = gql`
 
 
 const MessageContainerWithQuery = graphql(
-ALL_POSTS_QUERY, {
-  name: 'allPostsQuery',
-  options: {
-    fetchPolicy: 'network-only',
-    pollInterval: 5000
-  },
-}
+    ALL_POSTS_QUERY,{
+        name: 'allPostsQuery',
+        options: {
+            fetchPolicy: 'network-only',
+            pollInterval: 5000
+        },
+    }
 )(MessageContainer)
 
 export default MessageContainerWithQuery;

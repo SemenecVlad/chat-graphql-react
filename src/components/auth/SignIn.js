@@ -1,9 +1,57 @@
 import React, { Component } from 'react';
+import { graphql } from 'react-apollo';
+import gql from 'graphql-tag';
 
-export default class SignIn extends Component {
+class SignIn extends Component {
+    state = {
+        email: '',
+        password: ''
+    }
+
+    handleSubmit = async (e) => {
+        e.preventDefault();
+        let { email, password } = this.state;
+        await this.props.signInMutation({ variables: {
+            email, password
+        }}).then(({data: { signinUser: { token }}}) => {
+            localStorage.setItem('token', token);
+            console.log(token)
+        })
+        console.log(this.state.email, this.state.password)
+    }
+
     render() {
+        let { email, password } = this.state;
         return (
-            <div className='container'>SignIn Screen</div>
+            <div className='container'>
+                <h2>Sign In</h2>
+                <form onSubmit={this.handleSubmit}>
+                    <div>
+                        <div><label htmlFor="email">Email:</label></div>
+                        <input onChange={e => this.setState({email: e.target.value})} value={email} name="email" type="email" placeholder="Your Email..." />
+                    </div>
+                    <div>
+                        <div><label htmlFor="password">Password:</label></div>
+                        <input onChange={e => this.setState({password: e.target.value})} value={password} name="password" type="password" placeholder="Your Password..." />
+                    </div>
+                    <button>Sign In</button>
+                </form>
+            </div>
         )
     }
 }
+
+const SIGN_IN_MUTATION = gql`
+    mutation SignIn($email: String!, $password: String!) {
+        signinUser(email: { email: $email, password: $password }) {
+            token
+            user{
+                id
+                name
+            }
+        }
+    }
+`;
+
+const SignInWithGQL = graphql(SIGN_IN_MUTATION, {name: 'signInMutation'})(SignIn)
+export default SignInWithGQL;
