@@ -9,33 +9,6 @@ import Layout from './components/Layout';
 
 const history = createBrowserHistory();
 
-// const ExchangeRates = () => (
-//   <Query
-//     query={gql`
-//       {
-//         rates(currency: "USD") {
-//           currency
-//           rate
-//         }
-//       }
-//     `}
-//   >
-//     {
-//       ({loading, error, data, refetch }) => {
-//         if (loading) return <p>Loading</p>;
-//         if (error) return <p>Error: :(</p>;
-        
-//         return data.rates.map(({ currency, rate }) => (
-//           <div key={currency}>
-
-//             <p>{`${currency}: ${rate}`}</p>
-//           </div>
-//         ));
-//       }
-//     }
-//   </Query>
-// )
-
 class App extends Component {
   render() {
     return (

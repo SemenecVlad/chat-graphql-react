@@ -13,10 +13,13 @@ class SignIn extends Component {
         let { email, password } = this.state;
         await this.props.signInMutation({ variables: {
             email, password
-        }}).then(({data: { signinUser: { token }}}) => {
+        }}).then(({data: { signinUser: { token, user: {id, name } }}}) => {
             localStorage.setItem('token', token);
-            console.log(token)
-        })
+            localStorage.setItem('userId', id);
+            localStorage.setItem('userName', name);
+            console.log(name,id,token)
+        });
+        this.props.history.push('/chat')
         console.log(this.state.email, this.state.password)
     }
 
