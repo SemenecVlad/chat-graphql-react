@@ -9,11 +9,13 @@ class Message extends Component {
         this.props.refresh()
     }
     render() {
-        let { from, id, post: { description } } = this.props;
+        let { from, id, userName, files, post: { description } } = this.props;
         return(
             <div onClick={()=> this.deletePost(id)} className="messageContainer" style={(from === 'You') ? {justifyContent: 'flex-end'} : {justifyContent: 'flex-start'}}>
                 <div className="message" style={(from === 'You') ? {borderBottomRightRadius: '0'} : {borderBottomLeftRadius: '0'}}>
                     {description}
+                    <br/><small>by {userName}</small>
+                    {files !== undefined ? <img src={files.url} /> : ''}
                 </div>
             </div>
         )

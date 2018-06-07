@@ -5,7 +5,8 @@ import gql from 'graphql-tag';
 class SignIn extends Component {
     state = {
         email: '',
-        password: ''
+        password: '',
+        error: ''
     }
     componentWillMount() {
         if (localStorage.getItem('token') !== null) {
@@ -22,28 +23,34 @@ class SignIn extends Component {
             localStorage.setItem('token', token);
             localStorage.setItem('userId', id);
             localStorage.setItem('userName', name);
+            this.props.history.push('/chat')
             console.log(name,id,token)
+        }).catch(error => {
+            this.setState({
+                error: 'No user found with that information'
+            })
         });
-        this.props.history.push('/chat')
+        
         console.log(this.state.email, this.state.password)
     }
 
     render() {
-        let { email, password } = this.state;
+        let { email, password, error } = this.state;
         return (
             <div className='container'>
                 <h2>Sign In</h2>
                 <form onSubmit={this.handleSubmit}>
                     <div>
                         <div><label htmlFor="email">Email:</label></div>
-                        <input onChange={e => this.setState({email: e.target.value})} value={email} name="email" type="email" placeholder="Your Email..." />
+                        <input className="input-field" onChange={e => this.setState({email: e.target.value, error: ''})} value={email} name="email" type="email" placeholder="Your Email..." />
                     </div>
                     <div>
                         <div><label htmlFor="password">Password:</label></div>
-                        <input onChange={e => this.setState({password: e.target.value})} value={password} name="password" type="password" placeholder="Your Password..." />
+                        <input onChange={e => this.setState({password: e.target.value, error: ''})} value={password} name="password" type="password" placeholder="Your Password..." />
                     </div>
                     <button>Sign In</button>
                 </form>
+                {(error !== '') ? <div>{error}</div> : ''}
             </div>
         )
     }

@@ -14,8 +14,8 @@ class SideBar extends Component {
                 <h3>Users:</h3>
                 {this.props.getUsersQuery.allUsers && this.props.getUsersQuery.allUsers.map(user => (
                     <div className="single-user" key={user.id}>
-                        <div className="user-thumb"></div>
-                    {user.name}
+                        <div style={(user.id === localStorage.getItem('userId')) ? {backgroundColor:'green'} : {}} className="user-thumb"></div>
+                    {user.name === localStorage.getItem('userName') ? <div>{user.name} - is You!</div> : user.name}
                     </div>
                 ))}
             </div>

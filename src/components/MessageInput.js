@@ -1,17 +1,19 @@
 import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom'
-import { graphql} from 'react-apollo'
+import { graphql, compose, withApollo} from 'react-apollo'
 import gql from 'graphql-tag';
 
 class MessageInput extends Component {
     state = {
         description: '',
-        file: null
+        file: null,
+        filesIds: '',
+        userId: localStorage.getItem('userId')
     }
 
     handlePost = async () => {
-        const {description} = this.state
-        await this.props.createPostMutation({variables: {description}})
+        const {description, userId, filesIds} = this.state
+        await this.props.createPostMutation({variables: {description, userId, filesIds}})
         this.setState({
             description: ''
         })
@@ -19,19 +21,21 @@ class MessageInput extends Component {
     }
 
     onFormSubmit = (e) => {
-		e.preventDefault();
-        this.uploadFile(this.state.file);
-        console.log(this.state.file)
-	}
-
-	onChange = (e) => {
-		this.setState({ file: e.target.files[0] });
+        // e.preventDefault();
+        this.setState({ file: e.target.files[0] });
+        const {file} = this.state;
+        this.uploadFile(file);
+        
+        
+        console.log(file)
 	}
 
     uploadFile = (file) => {
         let data = new FormData();
         data.append('data', file);
         console.log(data)
+
+        // this.props.fileUpload({variables: {data}})
       
         // use the file endpoint
         fetch('https://api.graph.cool/file/v1/cji3486nr3q4b0191ifdu8j6x', {
@@ -44,10 +48,22 @@ class MessageInput extends Component {
             return response.json()
         })
         .then(file => {
-            const fileId = file.id;
-            console.log(file, fileId);
-            return fileId
+            const filesIds = file.id;
+            console.log(file, filesIds);
+            this.setState({
+                filesIds
+            });
+            return filesIds;
         })
+    }
+
+    sendPost = async () => {
+        
+        //if (this.state.file !== null) {
+            //await this.onFormSubmit()
+        //}
+        
+        this.handlePost()
     }
     
     render() {
@@ -59,13 +75,13 @@ class MessageInput extends Component {
                     value={this.state.description}
                     onChange={e => this.setState({description: e.target.value})} />
                 <form onSubmit={this.onFormSubmit}>
-                    <input type="file" onChange={this.onChange} />
+                    <input type="file" onChange={this.onFormSubmit} />
                     <button type='submit'>Upload</button>
                 </form>
                 
                 <button 
                     style={styles.submitBtn} 
-                    onClick={this.handlePost}>Send</button>
+                    onClick={this.sendPost}>Send</button>
             </div>
         )
     }
@@ -99,13 +115,29 @@ const styles = {
 
 
 const CREATE_POST_MUTATION = gql`
-  mutation CreatePostMutation($description: String!) {
-    createPost(description: $description ) {
+  mutation CreatePostMutation($userId: ID! ,$description: String!,$filesIds: [ID!]) {
+    createPost(userId: $userId ,description: $description, filesIds: $filesIds ) {
       id
       description
+      files{
+          id
+          url
+      }
     }
   }
-`
+`;
+// const UPLOAD_FILE_MUTATION = gql`
+//   mutation UploadFile($file: String!) {
+//     uploadFile(file: $file) {
+//         url
+//         id
+//     }
+// }
+// `
 
-const MessageInputWithMutation = graphql(CREATE_POST_MUTATION, {name: 'createPostMutation'})(MessageInput)
+const MessageInputWithMutation = compose(
+    graphql(CREATE_POST_MUTATION, {name: 'createPostMutation'}),
+    // graphql(UPLOAD_FILE_MUTATION, {name: 'fileUpload'}),
+
+)(MessageInput)
 export default withRouter(MessageInputWithMutation)

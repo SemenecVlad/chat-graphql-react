@@ -13,21 +13,32 @@ class MessageContainer extends Component {
     }
     
     render() {
+        let messages = this.props.allPostsQuery.allPosts;
+        if(this.props.allPostsQuery.allPosts == undefined) {
+            return <div>Loading</div>
+        }
         return(
+            
             <div style={styles.container}>
-                <div style={styles.messageBox}>
-                {this.props.allPostsQuery.allPosts && this.props.allPostsQuery.allPosts.map(post => (
+                <div style={{overflowY: 'scroll', display: 'block', height: '70vh', backgroundColor: 'aliceblue', borderRadius: '5px', marginBottom: '20px'}}>
+                    <div style={styles.messageBox}>
+                    {this.props.allPostsQuery.allPosts && messages.map(post => (
                     <Message
                         from="You"
                         id={post.id}
                         key={post.id}
+                        userName={post.user.name}
                         post={post}
+                        url={post.files.url}
+                        files={post.files[0]}
                         refresh={() => this.props.allPostsQuery.refetch()}
                     />
-                ))}
+                    ))}
+                    </div>
                 </div>
                 <MessageInput refresh={() => this.props.allPostsQuery.refetch()} />
             </div>
+            
         )
     }
 }
@@ -41,13 +52,13 @@ const styles = {
         flexDirection: 'column'
     },
     messageBox: {
-        height: '70vh',
+        // height: '70vh',
         // borderBottom: '1px solid gray',
-        marginBottom: '20px',
-        backgroundColor: 'aliceblue',
+        // marginBottom: '20px',
+        // backgroundColor: 'aliceblue',
         padding: '10px',
         boxSizing: 'border-box',
-        borderRadius: '5px',
+        // borderRadius: '5px',
         display: 'flex',
         flexDirection: 'column-reverse',
     }
@@ -58,6 +69,12 @@ const ALL_POSTS_QUERY = gql`
     allPosts(orderBy: createdAt_DESC) {
       id
       description
+      user{
+          name
+      }
+      files{
+          url
+      }
     }
   }
 `;

@@ -22,6 +22,7 @@ class Register extends Component {
             email, password, name
         }}).then((data) => {
             console.log(data)
+            this.props.history.push('/signin')
         }).catch((error) => {
             console.log("ЁБА...",error)
             this.setState({
