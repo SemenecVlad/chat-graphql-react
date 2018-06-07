@@ -1,11 +1,13 @@
 import React, { Component } from 'react';
-import { ApolloProvider, Query } from 'react-apollo';
-import gql from 'graphql-tag';
+import { ApolloProvider } from 'react-apollo';
 import { createBrowserHistory } from 'history';
+import { Router, Switch, Route } from 'react-router-dom';
 
-import { Router, Route, Switch } from 'react-router-dom';
-
-import Layout from './components/Layout';
+import Header from './components/Header';
+import Welcome from './components/Welcome';
+import SignIn from './components/auth/SignIn';
+import Register from './components/auth/Register';
+import ChatWindow from './components/ChatWindow';
 
 const history = createBrowserHistory();
 
@@ -14,7 +16,15 @@ class App extends Component {
     return (
       <ApolloProvider client={this.props.client}>
         <Router history={history}>
-          <Layout />
+            <div className="app-container">
+                <Header title="GraphQL Chat App" />
+                <Switch>
+                    <Route exact path='/' component={Welcome} />
+                    <Route exact path='/signin' component={SignIn} />
+                    <Route exact path='/register' component={Register} />
+                    <Route exact path='/chat' component={ChatWindow} />
+                </Switch>
+            </div>
         </Router>
       </ApolloProvider>
     );

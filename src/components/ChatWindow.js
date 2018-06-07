@@ -4,6 +4,12 @@ import MessageContainer from './MessageContainer';
 
 
 export default class ChatWindow extends Component {
+    
+    componentWillMount() {
+        if(localStorage.getItem('token') == null) {
+            this.props.history.push('/signin')
+        }
+    }
     render() {
         return(
             <div style={styles.container}>

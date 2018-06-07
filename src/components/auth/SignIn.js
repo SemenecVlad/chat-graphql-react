@@ -7,6 +7,11 @@ class SignIn extends Component {
         email: '',
         password: ''
     }
+    componentWillMount() {
+        if (localStorage.getItem('token') !== null) {
+            this.props.history.push('/chat')
+        }
+    }
 
     handleSubmit = async (e) => {
         e.preventDefault();

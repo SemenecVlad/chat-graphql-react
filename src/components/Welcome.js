@@ -20,6 +20,14 @@ const styles = {
         textAlign: 'center'
     },
     button: {
-        textAlign: 'center'
+        textAlign: 'center',
+        display: 'block',
+        width: "200px",
+        margin: '0 auto',
+        backgroundColor: 'pink',
+        color: 'white',
+        textDecoration: 'none',
+        padding: '15px',
+        borderRadius: '5px'
     }
 }
