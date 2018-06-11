@@ -11,10 +11,27 @@ class MessageContainer extends Component {
           this.props.allPostsQuery.refetch()
         }
     }
+
+    getFormatedDate = (timestring) => {
+        let ms,date,year,month, day, hours, minutes, seconds, formatedTime;
+
+        ms = Date.parse(timestring);
+        date = new Date(ms);
+
+        year = date.getFullYear();
+        month = ((date.getMonth() + 1) < 10) ? '0'+ (date.getMonth() + 1) : date.getMonth() + 1;
+        day = date.getDate() < 10 ? '0'+date.getDate() : date.getDate();
+        hours = date.getHours() < 10 ? '0'+date.getHours() : date.getHours();
+        minutes = date.getMinutes() < 10 ? '0'+date.getMinutes() : date.getMinutes();
+        seconds = date.getSeconds() < 10 ? '0'+date.getSeconds() : date.getSeconds();
+
+        formatedTime = `${hours}:${minutes}:${seconds} - ${day}/${month}/${year}`;
+        return formatedTime;
+    }
     
     render() {
         let messages = this.props.allPostsQuery.allPosts;
-        if(this.props.allPostsQuery.allPosts == undefined) {
+        if(this.props.allPostsQuery.allPosts === undefined) {
             return <div>Loading</div>
         }
         return(
@@ -24,12 +41,12 @@ class MessageContainer extends Component {
                     <div style={styles.messageBox}>
                     {this.props.allPostsQuery.allPosts && messages.map(post => (
                     <Message
+                        time={this.getFormatedDate(post.createdAt)}
                         from="You"
                         id={post.id}
                         key={post.id}
                         userName={post.user.name}
                         post={post}
-                        url={post.files.url}
                         files={post.files[0]}
                         refresh={() => this.props.allPostsQuery.refetch()}
                     />
@@ -69,6 +86,7 @@ const ALL_POSTS_QUERY = gql`
     allPosts(orderBy: createdAt_DESC) {
       id
       description
+      createdAt
       user{
           name
       }

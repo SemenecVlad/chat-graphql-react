@@ -7,63 +7,63 @@ class MessageInput extends Component {
     state = {
         description: '',
         file: null,
-        filesIds: '',
+        filesIds: 'cjia6p4gu091u0156homvbqtt',
         userId: localStorage.getItem('userId')
     }
 
     handlePost = async () => {
         const {description, userId, filesIds} = this.state
-        await this.props.createPostMutation({variables: {description, userId, filesIds}})
+        await this.props.createPostMutation({variables: {description, userId, filesIds}}).catch(err => console.log('[POST ERROR]',err))
         this.setState({
-            description: ''
+            description: '',
         })
-        this.props.refresh()
+
     }
 
-    onFormSubmit = (e) => {
-        // e.preventDefault();
-        this.setState({ file: e.target.files[0] });
-        const {file} = this.state;
-        this.uploadFile(file);
+    uploadFile = () => {
+        let file = this.state.file;
         
-        
-        console.log(file)
-	}
-
-    uploadFile = (file) => {
-        let data = new FormData();
-        data.append('data', file);
-        console.log(data)
-
-        // this.props.fileUpload({variables: {data}})
-      
-        // use the file endpoint
-        fetch('https://api.graph.cool/file/v1/cji3486nr3q4b0191ifdu8j6x', {
-          method: 'POST',
-          body: data,
-          name: 'data',
-        //   mode: "no-cors",
-        }).then(response => {
-            console.log('file upload response', response);
-            return response.json()
-        })
-        .then(file => {
-            const filesIds = file.id;
-            console.log(file, filesIds);
+        if (file !== null) {
+            let data = new FormData();
+            data.append('data', file);
+            //console.log(data)
+            fetch('https://api.graph.cool/file/v1/cji3486nr3q4b0191ifdu8j6x', {
+                method: 'POST',
+                body: data,
+                name: 'data'
+            }).then(response => {
+                console.log('file upload response', response);
+                return response.json();
+            })
+            .then(file => {
+                const filesIds = file.id;
+                console.log(file, filesIds);
+                this.setState({
+                    filesIds
+                });
+                return filesIds;
+            }).then(() => {
+                this.handlePost();
+                this.setState({
+                    filesIds: 'cjia6p4gu091u0156homvbqtt',
+                    file: null
+                })
+                console.log('[POST SENDED]-state- :', this.state.file)
+            }).catch(err => console.log('[ERROR]', err))
+        } else {
+            // if file not selected in file input then set filesIds value to the default,
+            // and get the default 1px line image from storage
             this.setState({
-                filesIds
+                filesIds: 'cjia6p4gu091u0156homvbqtt'
             });
-            return filesIds;
-        })
+            this.handlePost()
+        }
     }
 
-    sendPost = async () => {
-        
-        //if (this.state.file !== null) {
-            //await this.onFormSubmit()
-        //}
-        
-        this.handlePost()
+    onChange = e => {
+        this.setState({
+            file: e.target.files[0]
+        });
     }
     
     render() {
@@ -74,14 +74,14 @@ class MessageInput extends Component {
                     placeholder='Type your message here'
                     value={this.state.description}
                     onChange={e => this.setState({description: e.target.value})} />
-                <form onSubmit={this.onFormSubmit}>
-                    <input type="file" onChange={this.onFormSubmit} />
-                    <button type='submit'>Upload</button>
-                </form>
+
+                <input type="file" onChange={this.onChange} />
                 
                 <button 
                     style={styles.submitBtn} 
-                    onClick={this.sendPost}>Send</button>
+                    onClick={this.uploadFile}
+                    
+                    >Send</button>
             </div>
         )
     }
@@ -126,18 +126,9 @@ const CREATE_POST_MUTATION = gql`
     }
   }
 `;
-// const UPLOAD_FILE_MUTATION = gql`
-//   mutation UploadFile($file: String!) {
-//     uploadFile(file: $file) {
-//         url
-//         id
-//     }
-// }
-// `
 
 const MessageInputWithMutation = compose(
-    graphql(CREATE_POST_MUTATION, {name: 'createPostMutation'}),
-    // graphql(UPLOAD_FILE_MUTATION, {name: 'fileUpload'}),
-
+    withApollo,
+    graphql(CREATE_POST_MUTATION, {name: 'createPostMutation'})
 )(MessageInput)
 export default withRouter(MessageInputWithMutation)

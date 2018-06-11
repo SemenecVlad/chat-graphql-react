@@ -16,7 +16,7 @@ body {
 
 .message {
   max-width: 400px;
-  background-color: red;
+  background-color: rgb(159, 183, 204);
   color: white;
   padding: 10px;
   border-radius: 8px;
@@ -24,7 +24,7 @@ body {
 }
 
 .message img {
-  width: 100%;
+  max-width: 100%;
 }
 
 .single-user {
@@ -45,5 +45,46 @@ body {
 }
 
 .input-field {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+  margin: 10px 5px 20px 5px;
+  box-sizing: border-box;
+}
 
+.input-label {
+  display: block;
+  text-align: left;
+  margin-left: 5px;
+}
+
+.input-submit {
+  text-align: center;
+  display: block;
+  width: 200px;
+  margin: 0 auto;
+  background-color: pink;
+  color: white;
+  text-decoration: none;
+  padding: 15px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: .3s linear;
+}
+
+.input-submit:hover {
+  transition: .3s linear;
+  background-color: rgb(225, 0, 152);
+}
+
+.form-error {
+  padding: 15px;
+  background-color: rgb(225, 0, 152);
+  color: white;
+  width: 25%;
+  margin: 30px auto 0;
+  text-align: center;
+  text-transform: uppercase;
 }

@@ -4,18 +4,23 @@ import {graphql} from 'react-apollo';
 
 class Message extends Component {
     deletePost = async (id) => {
-        await this.props.deletePostMutation({variables: {id}})
-        console.log('Delete')
-        this.props.refresh()
+        await this.props.deletePostMutation({variables: {id}});
+        console.log('Delete');
+        this.props.refresh();
     }
     render() {
-        let { from, id, userName, files, post: { description } } = this.props;
+        let { from, id, userName, files, time, post: { description } } = this.props;
         return(
             <div onClick={()=> this.deletePost(id)} className="messageContainer" style={(from === 'You') ? {justifyContent: 'flex-end'} : {justifyContent: 'flex-start'}}>
                 <div className="message" style={(from === 'You') ? {borderBottomRightRadius: '0'} : {borderBottomLeftRadius: '0'}}>
-                    {description}
-                    <br/><small>by {userName}</small>
-                    {files !== undefined ? <img src={files.url} /> : ''}
+                    
+                    <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                        <div style={{marginRight: '20px'}}>{userName}</div>
+                        <div>{time}</div>
+                    </div>
+                    <br />
+                    <div>{description}</div>
+                    {files !== undefined ? <a href={files.url} target="_blank"><img alt={files.url} src={files.url} /></a> : ''}
                 </div>
             </div>
         )

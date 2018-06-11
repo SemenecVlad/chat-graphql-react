@@ -38,19 +38,24 @@ class SignIn extends Component {
         let { email, password, error } = this.state;
         return (
             <div className='container'>
-                <h2>Sign In</h2>
-                <form onSubmit={this.handleSubmit}>
+                <h2 style={{textAlign:'center'}}>Sign In</h2>
+                <form style={{
+                    width: '25%',
+                    margin: '0 auto',
+                    textAlign: 'center'
+                    }}
+                    onSubmit={this.handleSubmit}>
                     <div>
-                        <div><label htmlFor="email">Email:</label></div>
+                        <label className="input-label" htmlFor="email">Email:</label>
                         <input className="input-field" onChange={e => this.setState({email: e.target.value, error: ''})} value={email} name="email" type="email" placeholder="Your Email..." />
                     </div>
                     <div>
-                        <div><label htmlFor="password">Password:</label></div>
-                        <input onChange={e => this.setState({password: e.target.value, error: ''})} value={password} name="password" type="password" placeholder="Your Password..." />
+                        <label className="input-label" htmlFor="password">Password:</label>
+                        <input className="input-field" onChange={e => this.setState({password: e.target.value, error: ''})} value={password} name="password" type="password" placeholder="Your Password..." />
                     </div>
-                    <button>Sign In</button>
+                    <button className='input-submit'>Sign In</button>
                 </form>
-                {(error !== '') ? <div>{error}</div> : ''}
+                {(error !== '') ? <div className='form-error'>{error}</div> : ''}
             </div>
         )
     }

@@ -6,6 +6,7 @@ class Register extends Component {
     state = {
         email: '',
         password: '',
+        passwordConfirm: '',
         name: '',
         error: ''
     }
@@ -17,7 +18,13 @@ class Register extends Component {
 
     handleSubmit = async (e) => {
         e.preventDefault();
-        let { email, password, name } = this.state;
+        let { email, password, passwordConfirm, name } = this.state;
+        if (password !== passwordConfirm) {
+            this.setState({
+                error: 'Passwords must be an equal! Try again!'
+            });
+            return;
+        }
         await this.props.registerMutation({ variables: {
             email, password, name
         }}).then((data) => {
@@ -34,26 +41,30 @@ class Register extends Component {
     }
 
     render() {
-        let { email, password, name, error } = this.state;
+        let { email, password, passwordConfirm, name, error } = this.state;
         return (
             <div className='container'>
-                <h2>Register User</h2>
-                <form onSubmit={this.handleSubmit}>
+                <h2 style={{textAlign: 'center'}}>Register User</h2>
+                <form style={{width: '25%', margin: '0 auto'}} onSubmit={this.handleSubmit}>
                     <div>
-                        <div><label htmlFor="name">Name:</label></div>
-                        <input onChange={e => this.setState({name: e.target.value, error: ''})} value={name} name="name" autoComplete='name' type="text" placeholder="Your Name..." required />
+                        <label className='input-label' htmlFor="name">Name:</label>
+                        <input className='input-field' onChange={e => this.setState({name: e.target.value, error: ''})} value={name} name="name" autoComplete='name' type="text" placeholder="Your Name..." required />
                     </div>
                     <div>
-                        <div><label htmlFor="email">Email:</label></div>
-                        <input onChange={e => this.setState({email: e.target.value, error: ''})} value={email} name="email" autoComplete='email' type="email" placeholder="Your Email..." required/>
+                        <label className='input-label' htmlFor="email">Email:</label>
+                        <input className='input-field' onChange={e => this.setState({email: e.target.value, error: ''})} value={email} name="email" autoComplete='email' type="email" placeholder="Your Email..." required/>
                     </div>
                     <div>
-                        <div><label htmlFor="password">Password:</label></div>
-                        <input onChange={e => this.setState({password: e.target.value})} value={password} autoComplete='current-password' name="password" type="password" placeholder="Your Password..." required/>
+                        <label className='input-label' htmlFor="password">Password:</label>
+                        <input className='input-field' onChange={e => this.setState({password: e.target.value})} value={password} autoComplete='current-password' name="password" type="password" placeholder="Your Password..." required/>
                     </div>
-                    <button>Create Account</button>
+                    <div>
+                        <label className='input-label' htmlFor="password">Confirm Password:</label>
+                        <input className='input-field' onChange={e => this.setState({passwordConfirm: e.target.value})} value={passwordConfirm} autoComplete='current-password' name="password" type="password" placeholder="Your Password..." required/>
+                    </div>
+                    <button className='input-submit' type='submit'>Create Account</button>
                 </form>
-                { error ? <div>{error}</div> : ''}
+                { error ? <div className='form-error'>{error}</div> : ''}
             </div>
         )
     }
