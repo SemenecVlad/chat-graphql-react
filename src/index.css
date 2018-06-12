@@ -39,7 +39,7 @@ body {
 .user-thumb {
   width: 20px;
   height: 20px;
-  background-color: blueviolet;
+  background-color: rgb(225, 0, 152);
   border-radius: 50%;
   margin-right: 10px;
 }
