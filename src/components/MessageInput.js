@@ -56,7 +56,8 @@ class MessageInput extends Component {
             this.setState({
                 filesIds: 'cjia6p4gu091u0156homvbqtt'
             });
-            this.handlePost()
+            this.handlePost();
+            // this.props.refresh();
         }
     }
 
