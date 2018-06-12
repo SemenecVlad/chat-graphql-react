@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { graphql, Mutation } from 'react-apollo';
+import { Mutation } from 'react-apollo';
 import gql from 'graphql-tag';
 
 class SignIn extends Component {

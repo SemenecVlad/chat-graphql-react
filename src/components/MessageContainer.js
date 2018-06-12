@@ -3,7 +3,7 @@ import gql from 'graphql-tag';
 import { Query } from 'react-apollo';
 
 import MessageInput from './MessageInput';
-import Message from './Message';
+import MessageWrap from './MessageWrap';
 
 const getFormatedDate = (timestring) => {
     let ms,date,year,month, day, hours, minutes, seconds, formatedTime;
@@ -23,34 +23,28 @@ const getFormatedDate = (timestring) => {
 };
 
 const MessageContainer = (props) => (
-    <Query 
-        query={ALL_POSTS_QUERY}
-        pollInterval={1500}
-    >
-      {({ loading, error, data }) => {
+    <Query query={ALL_POSTS_QUERY}>
 
-        if (loading) return "Loading...";
-        if (error) return `Error! ${error.message}`;
-
+      {({ ...data, subscribeToMore }) => {
         return (
             <div style={styles.container}>
-                <div style={{overflowY: 'scroll', display: 'block', height: '70vh', backgroundColor: 'aliceblue', borderRadius: '5px', marginBottom: '20px'}}>
-                    <div style={styles.messageBox}>
-                        {data.allPosts && data.allPosts.map(post => (
-                            <Message
-                                time={getFormatedDate(post.createdAt)}
-                                from="You"
-                                id={post.id}
-                                key={post.id}
-                                userName={post.user.name}
-                                post={post}
-                                files={post.files[0]}
-                                refresh={() => this.props.allPostsQuery.refetch()}
-                            />
-                        ))}
-                    </div>
-                </div>
-                <MessageInput refresh={() => this.props.allPostsQuery.refetch()} />
+                <MessageWrap
+                    {...data}
+                    formatedDate={getFormatedDate}
+                    refresh={() => data.refetch()}
+                    styles={styles.messageBox}
+                    subscribeToNewPosts={() => subscribeToMore({
+                                document: POSTS_SUBSCRIPTION,
+                                updateQuery: (prev, {subscriptionData}) => {
+                                    const newPost = subscriptionData.data.Post.node;
+                                    if (!subscriptionData.data) return prev;
+                                    return Object.assign({}, prev, {
+                                          allPosts: [newPost, ...prev.allPosts] 
+                                      });
+                                }
+                    })} 
+                />
+                <MessageInput refresh={() => data.refetch()} />
             </div>
         )}}
     </Query>
@@ -65,13 +59,8 @@ const styles = {
         flexDirection: 'column'
     },
     messageBox: {
-        // height: '70vh',
-        // borderBottom: '1px solid gray',
-        // marginBottom: '20px',
-        // backgroundColor: 'aliceblue',
         padding: '10px',
         boxSizing: 'border-box',
-        // borderRadius: '5px',
         display: 'flex',
         flexDirection: 'column-reverse',
     }
@@ -93,16 +82,24 @@ const ALL_POSTS_QUERY = gql`
   }
 `;
 
-
-
-// const MessageContainerWithQuery = graphql(
-//     ALL_POSTS_QUERY,{
-//         name: 'allPostsQuery',
-//         options: {
-//             fetchPolicy: 'network-only',
-//             pollInterval: 1000
-//         },
-//     }
-// )(MessageContainer)
+const POSTS_SUBSCRIPTION = gql`
+  subscription {
+      Post(filter: {
+          mutation_in: [CREATED]
+      }) {
+          node {
+              description
+              createdAt
+              id
+              user {
+                  name
+              }
+              files {
+                  url
+              }
+          }
+      }
+  }
+`;
 
 export default MessageContainer;
