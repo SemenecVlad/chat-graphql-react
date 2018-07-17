@@ -8,7 +8,8 @@ class MessageInput extends Component {
         description: '',
         file: null,
         filesIds: 'cjia6p4gu091u0156homvbqtt',
-        userId: localStorage.getItem('userId')
+        userId: localStorage.getItem('userId'),
+        loading: false
     }
 
     handlePost = async () => {
@@ -16,6 +17,7 @@ class MessageInput extends Component {
         await this.props.createPostMutation({variables: {description, userId, filesIds}}).catch(err => console.log('[POST ERROR]',err))
         this.setState({
             description: '',
+            loading: false
         })
 
     }
@@ -26,6 +28,9 @@ class MessageInput extends Component {
         if (file !== null) {
             let data = new FormData();
             data.append('data', file);
+            this.setState({
+                loading: true
+            });
             //console.log(data)
             fetch('https://api.graph.cool/file/v1/cji3486nr3q4b0191ifdu8j6x', {
                 method: 'POST',
@@ -46,7 +51,8 @@ class MessageInput extends Component {
                 this.handlePost();
                 this.setState({
                     filesIds: 'cjia6p4gu091u0156homvbqtt',
-                    file: null
+                    file: null,
+                    loading: false
                 })
                 console.log('[POST SENDED]-state- :', this.state.file)
             }).catch(err => console.log('[ERROR]', err))
@@ -81,8 +87,8 @@ class MessageInput extends Component {
                 <button 
                     style={styles.submitBtn} 
                     onClick={this.uploadFile}
-                    
-                    >Send</button>
+                    disabled={(this.state.description || (this.state.file !== null)) ? '' : 'disabled'}
+                    >{this.state.loading ? 'Loading...' : 'Send'}</button>
             </div>
         )
     }

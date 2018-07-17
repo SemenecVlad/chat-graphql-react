@@ -1,29 +1,30 @@
-import React from 'react';
+import React, { Component } from 'react';
 import gql from 'graphql-tag';
-import { Query } from 'react-apollo';
+import { withRouter } from 'react-router-dom';
+import { Query, graphql, compose, withApollo } from 'react-apollo';
 
 import MessageInput from './MessageInput';
 import MessageWrap from './MessageWrap';
 
 const getFormatedDate = (timestring) => {
-    let ms,date,year,month, day, hours, minutes, seconds, formatedTime;
-    
+    let ms, date, year, month, day, hours, minutes, seconds, formatedTime;
+
     ms = Date.parse(timestring);
     date = new Date(ms);
-    
+
     year = date.getFullYear();
-    month = ((date.getMonth() + 1) < 10) ? '0'+ (date.getMonth() + 1) : date.getMonth() + 1;
-    day = date.getDate() < 10 ? '0'+date.getDate() : date.getDate();
-    hours = date.getHours() < 10 ? '0'+date.getHours() : date.getHours();
-    minutes = date.getMinutes() < 10 ? '0'+date.getMinutes() : date.getMinutes();
-    seconds = date.getSeconds() < 10 ? '0'+date.getSeconds() : date.getSeconds();
-    
+    month = ((date.getMonth() + 1) < 10) ? '0' + (date.getMonth() + 1) : date.getMonth() + 1;
+    day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
+    hours = date.getHours() < 10 ? '0' + date.getHours() : date.getHours();
+    minutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes();
+    seconds = date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds();
+
     formatedTime = `${hours}:${minutes}:${seconds} - ${day}/${month}/${year}`;
     return formatedTime;
 };
 
-const MessageContainer = (props) => (
-    <Query query={ALL_POSTS_QUERY}>
+const MessageContainer = ({id}) => (
+    <Query query={ALL_POSTS_QUERY} variables={{id}}>
 
       {({ ...data, subscribeToMore }) => {
         return (
@@ -67,8 +68,12 @@ const styles = {
 }
 
 const ALL_POSTS_QUERY = gql`
-  query AllPostsQuery {
-    allPosts(orderBy: createdAt_DESC) {
+  query AllPostsQuery($id: ID!) {
+    allPosts(filter: {
+        room: {
+          id: $id
+        }
+      }) {
       id
       description
       createdAt
@@ -84,22 +89,29 @@ const ALL_POSTS_QUERY = gql`
 
 const POSTS_SUBSCRIPTION = gql`
   subscription {
-      Post(filter: {
-          mutation_in: [CREATED]
-      }) {
-          node {
-              description
-              createdAt
+    Post {
+        mutation
+        node {
+          description
+          createdAt
+          id
+          room {
+              name
               id
-              user {
-                  name
-              }
-              files {
-                  url
-              }
           }
-      }
+          user {
+            name
+          }
+          files {
+            url
+          }
+        }
+        previousValues {
+          id
+        }
+    }
   }
 `;
+
 
 export default MessageContainer;
