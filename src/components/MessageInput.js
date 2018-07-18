@@ -1,8 +1,12 @@
 import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom'
-import { graphql, compose, withApollo} from 'react-apollo'
+import { withRouter } from 'react-router-dom';
+import { graphql, compose, withApollo} from 'react-apollo';
 import gql from 'graphql-tag';
 
+import { inject, observer } from 'mobx-react';
+
+@inject("MainStore")
+@observer
 class MessageInput extends Component {
     state = {
         description: '',
@@ -13,8 +17,9 @@ class MessageInput extends Component {
     }
 
     handlePost = async () => {
-        const {description, userId, filesIds} = this.state
-        await this.props.createPostMutation({variables: {description, userId, filesIds}}).catch(err => console.log('[POST ERROR]',err))
+        const { MainStore: {roomId}} = this.props;
+        const {description, userId, filesIds} = this.state;
+        await this.props.createPostMutation({variables: {description, userId, filesIds, roomId}}).catch(err => console.log('[POST ERROR]',err))
         this.setState({
             description: '',
             loading: false
@@ -122,8 +127,8 @@ const styles = {
 
 
 const CREATE_POST_MUTATION = gql`
-  mutation CreatePostMutation($userId: ID! ,$description: String!,$filesIds: [ID!]) {
-    createPost(userId: $userId ,description: $description, filesIds: $filesIds ) {
+  mutation CreatePostMutation($userId: ID! ,$description: String!,$filesIds: [ID!], $roomId: ID!) {
+    createPost(userId: $userId ,description: $description, filesIds: $filesIds, roomId: $roomId ) {
       id
       description
       files{

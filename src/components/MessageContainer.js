@@ -6,6 +6,8 @@ import { Query, graphql, compose, withApollo } from 'react-apollo';
 import MessageInput from './MessageInput';
 import MessageWrap from './MessageWrap';
 
+import { inject, observer } from 'mobx-react';
+
 const getFormatedDate = (timestring) => {
     let ms, date, year, month, day, hours, minutes, seconds, formatedTime;
 
@@ -23,18 +25,48 @@ const getFormatedDate = (timestring) => {
     return formatedTime;
 };
 
-const MessageContainer = ({id}) => (
-    <Query query={ALL_POSTS_QUERY} variables={{id}}>
+@inject("MainStore")
+@observer
+class MessageContainer extends Component {
 
-      {({ ...data, subscribeToMore }) => {
+    render() {
+        
         return (
-            <div style={styles.container}>
-                <MessageWrap
-                    {...data}
-                    formatedDate={getFormatedDate}
-                    refresh={() => data.refetch()}
-                    styles={styles.messageBox}
-                    subscribeToNewPosts={() => subscribeToMore({
+            <Query query={ALL_POSTS_QUERY} variables={{id: this.props.MainStore.roomId}}>
+
+            {({ ...data, subscribeToMore }) => {
+            
+            const { data: {_allPostsMeta }} = data;
+            
+            return (
+                <div style={styles.container}>
+
+                    <div style={styles.roomHeader}>
+                        <span>{this.props.MainStore.roomName}</span>
+                        <span>{_allPostsMeta && _allPostsMeta.count+' posts'}</span>
+                        <button>
+                            Add users
+                        </button>
+
+                        <button>
+                            Change name
+                        </button>
+
+                        <button onClick={() => {
+                            this.props.deleteRoomMutation({variables: { id: this.props.MainStore.roomId}});
+                            this.props.MainStore.changeRoom(this.props.MainStore.defaultRoomId, this.props.MainStore.defaultRoomName);
+                        }}>
+                            Delete conversation
+                        </button>
+
+                    </div>
+
+                    <MessageWrap
+                        {...data}
+                        formatedDate={getFormatedDate}
+                        refresh={() => data.refetch()}
+                        styles={styles.messageBox}
+                        subscribeToNewPosts={() => subscribeToMore({
                                 document: POSTS_SUBSCRIPTION,
                                 updateQuery: (prev, {subscriptionData}) => {
                                     const newPost = subscriptionData.data.Post.node;
@@ -43,15 +75,26 @@ const MessageContainer = ({id}) => (
                                           allPosts: [newPost, ...prev.allPosts] 
                                       });
                                 }
-                    })} 
-                />
-                <MessageInput refresh={() => data.refetch()} />
-            </div>
-        )}}
-    </Query>
-  );
+                        })} 
+                    />
+                    <MessageInput refresh={() => data.refetch()} />
+                </div>
+            )}}
+            </Query>
+        )
+    }
+}
+
+
 
 const styles = {
+    roomHeader: {
+        padding: 10,
+        outline: '1px solid aliceblue',
+        color: 'gray',
+        display: 'flex',
+        justifyContent: 'space-between'
+    },
     container: {
         padding: '20px',
         width: '83.5%',
@@ -84,6 +127,13 @@ const ALL_POSTS_QUERY = gql`
           url
       }
     }
+    _allPostsMeta(filter: {
+        room: {
+          id: $id
+        }
+      }) {
+        count
+      }
   }
 `;
 
@@ -113,5 +163,18 @@ const POSTS_SUBSCRIPTION = gql`
   }
 `;
 
+const DELETE_ROOM_MUTATION = gql`
+  mutation DeleteRoom($id: ID!) {
+      deleteRoom(id: $id) {
+          name
+      }
+  }
+`;
 
-export default MessageContainer;
+const MessageContainerWithMutation = compose(
+    withApollo,
+    graphql(DELETE_ROOM_MUTATION, {name: 'deleteRoomMutation'}),
+)(MessageContainer)
+export default withRouter(MessageContainerWithMutation)
+
+//export default MessageContainer;

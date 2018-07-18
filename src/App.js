@@ -9,8 +9,12 @@ import SignIn from './components/auth/SignIn';
 import Register from './components/auth/Register';
 import ChatWindow from './components/ChatWindow';
 
+import { inject, observer} from 'mobx-react';
+
 const history = createBrowserHistory();
 
+@inject('MainStore')
+@observer
 class App extends Component {
   render() {
     return (

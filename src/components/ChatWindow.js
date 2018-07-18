@@ -4,9 +4,6 @@ import MessageContainer from './MessageContainer';
 
 
 export default class ChatWindow extends Component {
-    state = {
-        id: localStorage.getItem("roomId")
-    }
     
     componentWillMount() {
         if(localStorage.getItem('token') == null) {
@@ -17,7 +14,7 @@ export default class ChatWindow extends Component {
         return(
             <div style={styles.container}>
                 <SideBar />
-                <MessageContainer id={this.state.id} />
+                <MessageContainer />
             </div>
         )
     }

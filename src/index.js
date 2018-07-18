@@ -12,6 +12,9 @@ import './index.css';
 import App from './App';
 import registerServiceWorker from './registerServiceWorker';
 
+import { Provider } from 'mobx-react';
+import MainStore from './store/MainStore';
+
 const httpLink = new HttpLink({
     uri: 'https://api.graph.cool/simple/v1/cji3486nr3q4b0191ifdu8j6x'
 });
@@ -35,7 +38,14 @@ const link = split(
 const client = new ApolloClient({
     link: link,
     cache: new InMemoryCache()
-})
+});
 
-ReactDOM.render(<App client={client} />, document.getElementById('root'));
+
+const Root = (
+    <Provider MainStore={MainStore}>
+        <App client={client} />
+    </Provider>
+);
+
+ReactDOM.render(Root, document.getElementById('root'));
 registerServiceWorker();
