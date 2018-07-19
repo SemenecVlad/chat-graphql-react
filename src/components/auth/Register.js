@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
-import { graphql } from 'react-apollo';
-import gql from 'graphql-tag';
+import { inject, observer } from 'mobx-react';
 
+@inject('chatStore')
+@observer
 class Register extends Component {
     state = {
         email: '',
@@ -16,18 +17,17 @@ class Register extends Component {
         }
     }
 
-    handleSubmit = async (e) => {
+    handleSubmit = async (e, email, password, name) => {
         e.preventDefault();
-        let { email, password, passwordConfirm, name } = this.state;
+        let { passwordConfirm } = this.state;
         if (password !== passwordConfirm) {
             this.setState({
                 error: 'Passwords must be an equal! Try again!'
             });
             return;
         }
-        await this.props.registerMutation({ variables: {
-            email, password, name
-        }}).then((data) => {
+        await this.props.chatStore.register(email, password, name)
+        .then((data) => {
             console.log(data)
             this.props.history.push('/signin')
         }).catch((error) => {
@@ -45,7 +45,7 @@ class Register extends Component {
         return (
             <div className='container'>
                 <h2 style={{textAlign: 'center'}}>Register User</h2>
-                <form style={{width: '25%', margin: '0 auto'}} onSubmit={this.handleSubmit}>
+                <form style={{width: '25%', margin: '0 auto'}} onSubmit={e => this.handleSubmit(e, email, password, name)}>
                     <div>
                         <label className='input-label' htmlFor="name">Name:</label>
                         <input className='input-field' onChange={e => this.setState({name: e.target.value, error: ''})} value={name} name="name" autoComplete='name' type="text" placeholder="Your Name..." required />
@@ -70,16 +70,4 @@ class Register extends Component {
     }
 }
 
-const REGISTER_MUTATION = gql`
-    mutation Register($email: String!, $password: String!, $name: String!) {
-        createUser(name:$name,authProvider: {email: {email: $email, password: $password}})
-        {
-            email
-            name
-            password
-        }
-    }
-`;
-
-const RegisterWithGQL = graphql(REGISTER_MUTATION, {name: 'registerMutation'})(Register)
-export default RegisterWithGQL;
+export default Register;

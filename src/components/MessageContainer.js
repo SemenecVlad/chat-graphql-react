@@ -1,10 +1,7 @@
 import React, { Component } from 'react';
-import gql from 'graphql-tag';
-import { withRouter } from 'react-router-dom';
-import { Query, graphql, compose, withApollo } from 'react-apollo';
 
 import MessageInput from './MessageInput';
-import MessageWrap from './MessageWrap';
+import Message from './Message';
 
 import { inject, observer } from 'mobx-react';
 
@@ -25,65 +22,95 @@ const getFormatedDate = (timestring) => {
     return formatedTime;
 };
 
-@inject("MainStore")
+@inject("chatStore")
 @observer
 class MessageContainer extends Component {
 
-    render() {
-        
-        return (
-            <Query query={ALL_POSTS_QUERY} variables={{id: this.props.MainStore.roomId}}>
+    state = {
+        editRoom: false,
+        newRoomName: this.props.chatStore.roomName
+    }
+    
+    renderRoomButtons = () => {
+        const { deleteRoom, changeRoom, roomId, defaultRoomId, defaultRoomName } = this.props.chatStore;
 
-            {({ ...data, subscribeToMore }) => {
-            
-            const { data: {_allPostsMeta }} = data;
-            
+        if (roomId !== defaultRoomId) {
             return (
+                <div>
+                    <button>
+                        Add users
+                    </button>
+
+                    <button>
+                        Change name
+                    </button>
+
+                    <button>
+                        Leave Room
+                    </button>
+
+                    <button onClick={() => {
+                        deleteRoom(roomId);
+                        changeRoom(defaultRoomId, defaultRoomName);
+                    }}>
+                        Delete conversation
+                    </button>
+                </div>
+            )
+        }
+    }
+
+    render() {
+        const { posts, postsCount, deleteRoom, changeRoom, defaultRoomId, defaultRoomName, roomName, roomId } = this.props.chatStore;
+        return (
                 <div style={styles.container}>
 
                     <div style={styles.roomHeader}>
-                        <span>{this.props.MainStore.roomName}</span>
-                        <span>{_allPostsMeta && _allPostsMeta.count+' posts'}</span>
-                        <button>
-                            Add users
-                        </button>
+                    
+                        {this.state.editRoom ?
+                        <div>
+                            <input 
+                                value={this.state.newRoomName}
+                                type="text"
+                                onChange={(e) => this.setState({
+                                    newRoomName: e.target.value
+                                })}
+                            />
+                            <button onClick={() => console.log(this.state.newRoomName)}>Change</button>
+                        </div> :
+                        <span>{roomName}</span>
+                        }
 
-                        <button>
-                            Change name
-                        </button>
 
-                        <button onClick={() => {
-                            this.props.deleteRoomMutation({variables: { id: this.props.MainStore.roomId}});
-                            this.props.MainStore.changeRoom(this.props.MainStore.defaultRoomId, this.props.MainStore.defaultRoomName);
-                        }}>
-                            Delete conversation
-                        </button>
+                        <span>{postsCount.count +' users'}</span>
+                        
+                        {this.renderRoomButtons()}
 
                     </div>
 
-                    <MessageWrap
-                        {...data}
-                        formatedDate={getFormatedDate}
-                        refresh={() => data.refetch()}
-                        styles={styles.messageBox}
-                        subscribeToNewPosts={() => subscribeToMore({
-                                document: POSTS_SUBSCRIPTION,
-                                updateQuery: (prev, {subscriptionData}) => {
-                                    const newPost = subscriptionData.data.Post.node;
-                                    if (!subscriptionData.data) return prev;
-                                    return Object.assign({}, prev, {
-                                          allPosts: [newPost, ...prev.allPosts] 
-                                      });
-                                }
-                        })} 
-                    />
-                    <MessageInput refresh={() => data.refetch()} />
+                    <div style={styles.messageBox}>
+                        <div style={{overflowY: 'scroll', display: 'block', height: '70vh', backgroundColor: 'aliceblue', borderRadius: '5px', marginBottom: '20px'}}>
+                            <div style={styles} >
+                                {posts.map(post => (
+                                <Message
+                                    time={getFormatedDate(post.createdAt)}
+                                    from="You"
+                                    id={post.id}
+                                    key={post.id}
+                                    userName={post.user.name}
+                                    post={post}
+                                    files={post.files[0]}
+                                />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <MessageInput />
                 </div>
-            )}}
-            </Query>
-        )
+            )
+        }
     }
-}
 
 
 
@@ -97,7 +124,7 @@ const styles = {
     },
     container: {
         padding: '20px',
-        width: '83.5%',
+        flex: 1,
         boxSizing: 'border-box',
         display: 'flex',
         flexDirection: 'column'
@@ -106,75 +133,8 @@ const styles = {
         padding: '10px',
         boxSizing: 'border-box',
         display: 'flex',
-        flexDirection: 'column-reverse',
+        flexDirection: 'column',
     }
 }
 
-const ALL_POSTS_QUERY = gql`
-  query AllPostsQuery($id: ID!) {
-    allPosts(filter: {
-        room: {
-          id: $id
-        }
-      }) {
-      id
-      description
-      createdAt
-      user{
-          name
-      }
-      files{
-          url
-      }
-    }
-    _allPostsMeta(filter: {
-        room: {
-          id: $id
-        }
-      }) {
-        count
-      }
-  }
-`;
-
-const POSTS_SUBSCRIPTION = gql`
-  subscription {
-    Post {
-        mutation
-        node {
-          description
-          createdAt
-          id
-          room {
-              name
-              id
-          }
-          user {
-            name
-          }
-          files {
-            url
-          }
-        }
-        previousValues {
-          id
-        }
-    }
-  }
-`;
-
-const DELETE_ROOM_MUTATION = gql`
-  mutation DeleteRoom($id: ID!) {
-      deleteRoom(id: $id) {
-          name
-      }
-  }
-`;
-
-const MessageContainerWithMutation = compose(
-    withApollo,
-    graphql(DELETE_ROOM_MUTATION, {name: 'deleteRoomMutation'}),
-)(MessageContainer)
-export default withRouter(MessageContainerWithMutation)
-
-//export default MessageContainer;
+export default MessageContainer;

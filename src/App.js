@@ -13,7 +13,7 @@ import { inject, observer} from 'mobx-react';
 
 const history = createBrowserHistory();
 
-@inject('MainStore')
+@inject('chatStore')
 @observer
 class App extends Component {
   render() {

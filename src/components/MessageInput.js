@@ -1,11 +1,7 @@
 import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
-import { graphql, compose, withApollo} from 'react-apollo';
-import gql from 'graphql-tag';
-
 import { inject, observer } from 'mobx-react';
 
-@inject("MainStore")
+@inject("chatStore")
 @observer
 class MessageInput extends Component {
     state = {
@@ -17,9 +13,9 @@ class MessageInput extends Component {
     }
 
     handlePost = async () => {
-        const { MainStore: {roomId}} = this.props;
+        const { roomId, createPost } = this.props.chatStore;
         const {description, userId, filesIds} = this.state;
-        await this.props.createPostMutation({variables: {description, userId, filesIds, roomId}}).catch(err => console.log('[POST ERROR]',err))
+        await createPost(userId, description, filesIds, roomId);
         this.setState({
             description: '',
             loading: false
@@ -124,23 +120,4 @@ const styles = {
     }
 }
 
-
-
-const CREATE_POST_MUTATION = gql`
-  mutation CreatePostMutation($userId: ID! ,$description: String!,$filesIds: [ID!], $roomId: ID!) {
-    createPost(userId: $userId ,description: $description, filesIds: $filesIds, roomId: $roomId ) {
-      id
-      description
-      files{
-          id
-          url
-      }
-    }
-  }
-`;
-
-const MessageInputWithMutation = compose(
-    withApollo,
-    graphql(CREATE_POST_MUTATION, {name: 'createPostMutation'})
-)(MessageInput)
-export default withRouter(MessageInputWithMutation)
+export default MessageInput;
