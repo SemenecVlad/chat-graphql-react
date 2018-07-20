@@ -1,7 +1,15 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
+import Loader from 'react-loader-spinner';
 
 const UsersList = inject('chatStore')(observer(props => {
+    if (props.chatStore.usersLoading) {
+        return (
+            <div style={{display: "flex", justifyContent: "center"}}>
+                <Loader type="Puff" color="rgb(225, 0, 152)" height={30} width={30} />
+            </div>
+        )
+    }
     return (
         <div className="users-list">
             {props.chatStore.users.map(user => (

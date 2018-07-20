@@ -88,3 +88,17 @@ body {
   text-align: center;
   text-transform: uppercase;
 }
+
+.ReactModal__Overlay--after-open {
+  background-color: rgba(0, 0, 0, 0.65) !important;
+}
+
+.modal-add-users {
+  padding: 5px;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* .modal-add-users:hover {
+  background: rgba(0, 0, 0, 0.15)
+} */

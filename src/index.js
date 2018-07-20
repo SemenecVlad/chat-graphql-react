@@ -15,10 +15,13 @@ import { Provider } from 'mobx-react';
 
 import './index.css';
 import App from './App';
+import Modal from 'react-modal';
 import registerServiceWorker from './registerServiceWorker';
 
 
 // import MainStore from './store/MainStore';
+
+Modal.setAppElement("#root");
 
 const httpLink = new HttpLink({
     uri: 'https://api.graph.cool/simple/v1/cji3486nr3q4b0191ifdu8j6x'
@@ -70,6 +73,19 @@ const ALL_POSTS_QUERY = gql`
       ) {
         count
       }
+  }
+`;
+
+const GET_USERS_NOT_ROOM_MEMBERS = gql`
+    query getUsersByRoom($roomId: ID){
+    allUsers(filter: {
+      rooms_none: {
+        id: $roomId
+      }
+    }) {
+      id
+      name
+    }
   }
 `;
 
@@ -224,6 +240,34 @@ const SIGN_IN_MUTATION = gql`
     }
 `;
 
+const LEAVE_ROOM_MUTATION = gql`
+    mutation removeUserFromRoom($userId: ID!, $roomId: ID!) {
+    removeFromRoomOnUser(usersUserId:$userId, roomsRoomId:$roomId) {
+      roomsRoom {
+        name
+        id
+      }
+      usersUser {
+        name
+        id
+      }
+    }
+  }
+`;
+
+const ADD_USER_IN_ROOM_MUTATION = gql`
+  mutation addUserToRoom($userId: ID!, $roomId: ID!) {
+  addToRoomOnUser(usersUserId: $userId, roomsRoomId: $roomId) {
+    roomsRoom {
+      name
+    }
+    usersUser {
+      name
+    }
+  }
+}
+`;
+
 // Mobx store
 
 const chatStore = new class {
@@ -234,7 +278,7 @@ const chatStore = new class {
                     client,
                     query: ALL_POSTS_QUERY,
                     variables: {
-                        id: this.roomId
+                        id: (this.roomId ? this.roomId : this.defaultRoomId)
                     }
                 })
             },
@@ -265,6 +309,21 @@ const chatStore = new class {
             get users() {
                 return (this.allUsers.data && this.allUsers.data.allUsers) || [];
             },
+            get AllusersNotRoomMembers() {
+                return graphql({
+                    client,
+                    query: GET_USERS_NOT_ROOM_MEMBERS,
+                    variables: {
+                        roomId: this.roomId
+                    }
+                });
+            },
+            get usersNotRoomMembers() {
+                return (this.AllusersNotRoomMembers.data && this.AllusersNotRoomMembers.data.allUsers) || [];
+            },
+            get usersNotRoomMembersLoading() {
+                return (this.AllusersNotRoomMembers.loading);
+            },
             get allRooms() {
                 return graphql({
                     client,
@@ -291,6 +350,53 @@ const chatStore = new class {
 
     currentUserID = localStorage.getItem('userId');
 
+    @action subscribe = (prop, node, document) => this[prop].ref.subscribeToMore({
+        document,
+        updateQuery: (current, { subscriptionData }) => {
+            const prev = current[prop]; // Ошибка тут - возвращает массив только первой комнаты всегда
+            const next = subscriptionData.data[node];
+            console.log(next.mutation);
+            console.log(prev)
+
+            if (next.mutation === 'CREATED') {
+                return { [prop]: prev.concat([next.node])}
+            }
+                
+            if (next.mutation === 'UPDATED') {
+                const updated = prev.slice();
+                const index = updated.findIndex(({id}) => id === next.node.id );
+                updated[index] = next.node;
+                return { [prop]: updated};
+            }
+
+            if (next.mutation === 'DELETED') {
+                return {
+                    [prop]: prev.filter(({id}) => id !== next.previousValues.id)
+                }
+            }
+        }
+    });
+
+    @action addUserInRoom = (userId, roomId) => client.mutate({
+        mutation: ADD_USER_IN_ROOM_MUTATION,
+        variables: { userId, roomId },
+        refetchQueries: [
+            { 
+                query: GET_ROOMS_QUERY
+            }
+        ]
+    }).catch(error => console.log(error));
+
+    @action leaveRoom = (userId, roomId) => client.mutate({
+        mutation: LEAVE_ROOM_MUTATION,
+        variables: { userId, roomId },
+        refetchQueries: [
+            { 
+                query: GET_ROOMS_QUERY
+            }
+        ]
+    }).catch(error => console.log(error));
+
     @action signIn = (email, password) => client.mutate({
         mutation: SIGN_IN_MUTATION,
         variables: { email, password }
@@ -304,14 +410,18 @@ const chatStore = new class {
     @action createPost = (userId, description, filesIds, roomId) => client.mutate({
         mutation: CREATE_POST_MUTATION,
         variables: { userId, description, filesIds, roomId },
+        // updateQueries: {
+        //     query: ALL_POSTS_QUERY,
+        //     variables: { id: roomId }
+        // }
         //--!!!!!-- TODO: Remove refetch... it must correct work without it, but works only with first room(update UI),
         // in other rooms UI doesn't updates, only when manually refresh browser, you can see changes
-        refetchQueries: [
-            { 
-                query: ALL_POSTS_QUERY,
-                variables: { id: this.roomId}
-            }
-        ]
+        // refetchQueries: [
+        //     { 
+        //         query: ALL_POSTS_QUERY,
+        //         variables: { id: this.roomId}
+        //     }
+        // ]
     }).catch(error => console.log(error));
 
     @action deletePost = id => client.mutate({
@@ -335,35 +445,9 @@ const chatStore = new class {
         mutation: DELETE_ROOM_MUTATION,
         variables: { id }
     }).catch(error => console.log(error));
-
-    @action subscribe = (prop, node, document) => this[prop].ref.subscribeToMore({
-        document,
-        updateQuery: (current, { subscriptionData }) => {
-            const prev = current[prop];
-            const next = subscriptionData.data[node];
-
-            if (next.mutation === 'CREATED') {
-                return { [prop]: prev.concat([next.node])}
-            }
-                
-            if (next.mutation === 'UPDATED') {
-                const updated = prev.slice();
-                const index = updated.findIndex(({id}) => id === next.node.id );
-                updated[index] = next.node;
-                return { [prop]: updated};
-            }
-
-            if (next.mutation === 'DELETED') {
-                return {
-                    [prop]: prev.filter(({id}) => id !== next.previousValues.id)
-                }
-            }
-        }
-    });
-
     
-    @observable roomId = "cjjpigz0e17eo01354las7vgc";
-    @observable roomName = "general";
+    @observable roomId = "";
+    @observable roomName = "";
     defaultRoomId = "cjjpigz0e17eo01354las7vgc";
     defaultRoomName = "general";
 

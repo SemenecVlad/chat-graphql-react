@@ -3,6 +3,9 @@ import React, { Component } from 'react';
 import MessageInput from './MessageInput';
 import Message from './Message';
 
+import Modal from 'react-modal';
+import Loader from 'react-loader-spinner';
+
 import { inject, observer } from 'mobx-react';
 
 const getFormatedDate = (timestring) => {
@@ -28,24 +31,46 @@ class MessageContainer extends Component {
 
     state = {
         editRoom: false,
-        newRoomName: this.props.chatStore.roomName
+        newRoomName: '',
+        modalIsOpen: false
+    }
+
+    openModal = () => {
+        this.setState({modalIsOpen: true});
+    }
+
+    closeModal = () => {
+        this.setState({modalIsOpen: false});
+    }
+
+    showLoader = (size) => {
+        return (
+            <div style={{display: "flex", justifyContent: "center", alignItems: "center", height: "100%"}}>
+                <Loader type="Puff" color="rgb(225, 0, 152)" height={size} width={size} />
+            </div>
+        )
     }
     
     renderRoomButtons = () => {
-        const { deleteRoom, changeRoom, roomId, defaultRoomId, defaultRoomName } = this.props.chatStore;
-
-        if (roomId !== defaultRoomId) {
+        const { leaveRoom ,deleteRoom, changeRoom, roomId, defaultRoomId, defaultRoomName, currentUserID } = this.props.chatStore;
+        console.log(this.props.chatStore.roomName)
+        if (roomId !== defaultRoomId && roomId !== '') {
             return (
                 <div>
-                    <button>
+                    <button onClick={() => this.openModal()}>
                         Add users
                     </button>
 
-                    <button>
+                    <button onClick={() => this.setState(
+                        prevState => ({editRoom: !prevState.editRoom}))}
+                    >
                         Change name
                     </button>
 
-                    <button>
+                    <button onClick={() => {
+                        leaveRoom(currentUserID, roomId);
+                        changeRoom(defaultRoomId, defaultRoomName);
+                    }}>
                         Leave Room
                     </button>
 
@@ -61,7 +86,15 @@ class MessageContainer extends Component {
     }
 
     render() {
-        const { posts, postsCount, deleteRoom, changeRoom, defaultRoomId, defaultRoomName, roomName, roomId } = this.props.chatStore;
+        const { 
+            posts,
+            postsCount,
+            roomName,
+            defaultRoomName,
+            usersNotRoomMembers,
+            usersNotRoomMembersLoading
+        } = this.props.chatStore;
+        
         return (
                 <div style={styles.container}>
 
@@ -70,7 +103,7 @@ class MessageContainer extends Component {
                         {this.state.editRoom ?
                         <div>
                             <input 
-                                value={this.state.newRoomName}
+                                value={this.props.chatStore.roomName}
                                 type="text"
                                 onChange={(e) => this.setState({
                                     newRoomName: e.target.value
@@ -78,7 +111,7 @@ class MessageContainer extends Component {
                             />
                             <button onClick={() => console.log(this.state.newRoomName)}>Change</button>
                         </div> :
-                        <span>{roomName}</span>
+                        <span>{roomName ? roomName : defaultRoomName}</span>
                         }
 
 
@@ -89,7 +122,11 @@ class MessageContainer extends Component {
                     </div>
 
                     <div style={styles.messageBox}>
+                    
                         <div style={{overflowY: 'scroll', display: 'block', height: '70vh', backgroundColor: 'aliceblue', borderRadius: '5px', marginBottom: '20px'}}>
+                            
+                            {(this.props.chatStore.postsLoading) && this.showLoader(50)}
+                            
                             <div style={styles} >
                                 {posts.map(post => (
                                 <Message
@@ -107,6 +144,54 @@ class MessageContainer extends Component {
                     </div>
 
                     <MessageInput />
+
+                    <Modal
+                        isOpen={this.state.modalIsOpen}
+                        contentLabel="Add Users"
+                        style={customStyles}
+                    >
+                        <div style={styles.userModalHeader}>
+                            <h3 style={{margin: 0}}>Add users to Room:</h3>
+                            <button
+                                style={styles.userModalClose}
+                                onClick={this.closeModal}
+                            >
+                                <span style={styles.userModalCloseIcon}>+</span>
+
+                            </button>
+                        </div>
+
+                        {usersNotRoomMembersLoading && this.showLoader(30)}
+                        
+                        <div style={styles.userModalList}>{usersNotRoomMembers.map(user => {
+                            return(
+                                <div className="modal-add-users" id={user.id} key={user.id}>
+                                    {user.name}
+                                    <button 
+                                        style={styles.userModalSubmit}
+                                        onClick={() => {
+                                            this.props.chatStore.addUserInRoom(user.id, this.props.chatStore.roomId).then(
+                                                console.log('User added '+ user.name)
+                                            )
+                                        }}
+                                    >
+                                        Add User
+                                    </button>
+                                </div>
+                            )
+                        })}</div>
+                        <br/>
+                        
+                        {/* <div style={styles.userModalFooter}>
+                            <button 
+                                style={styles.userModalSubmit}
+                                
+                            >
+                                Add Users
+                            </button>
+                        </div> */}
+                        
+                    </Modal>
                 </div>
             )
         }
@@ -116,25 +201,75 @@ class MessageContainer extends Component {
 
 const styles = {
     roomHeader: {
-        padding: 10,
-        outline: '1px solid aliceblue',
-        color: 'gray',
-        display: 'flex',
-        justifyContent: 'space-between'
+        padding                 : 10,
+        outline                 : '1px solid aliceblue',
+        color                   : 'gray',
+        display                 : 'flex',
+        justifyContent          : 'space-between'
     },
     container: {
-        padding: '20px',
-        flex: 1,
-        boxSizing: 'border-box',
-        display: 'flex',
-        flexDirection: 'column'
+        padding                 : '20px',
+        flex                    : 1,
+        boxSizing               : 'border-box',
+        display                 : 'flex',
+        flexDirection           : 'column'
     },
     messageBox: {
-        padding: '10px',
-        boxSizing: 'border-box',
-        display: 'flex',
-        flexDirection: 'column',
+        padding                 : '10px',
+        boxSizing               : 'border-box',
+        display                 : 'flex',
+        flexDirection           : 'column',
+    },
+    userModalList: {
+        height                  : '400px',
+        overflowY               : 'scroll'
+    },
+    userModalHeader: {
+        display                 : 'flex',
+        justifyContent          : 'space-between',
+        alignItems              : 'flex-start',
+        marginBottom            : 10
+    },
+    userModalClose: {
+        borderRadius            : '50%',
+        width                   : 20,
+        height                  : 20,
+        border                  : 'none',
+        position                : 'relative',
+        background              : 'rgb(225, 0, 152)'
+    },
+    userModalCloseIcon: {
+        position                : 'absolute',
+        top                     : 3,
+        left                    : 6,
+        color                   : 'white',
+        fontWeight              : 'bold',
+        transform               : 'rotate(45deg)'
+    },
+    userModalFooter: {
+        display                 : 'flex',
+        justifyContent          : 'flex-end'
+    },
+    userModalSubmit: {
+        border                  : 'none',
+        background              : 'rgb(225, 0, 152)',
+        color                   : 'white',
+        padding                 : '5px',
+        cursor                  : 'pointer'
     }
 }
+
+const customStyles = {
+    content : {
+      top                   : '40%',
+      left                  : '50%',
+      right                 : 'auto',
+      bottom                : 'auto',
+      marginRight           : '-50%',
+      transform             : 'translate(-50%, -50%)',
+      width                 : '500px',
+      
+    }
+  };
 
 export default MessageContainer;

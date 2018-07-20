@@ -13,9 +13,13 @@ class MessageInput extends Component {
     }
 
     handlePost = async () => {
-        const { roomId, createPost } = this.props.chatStore;
+        const { roomId, createPost, defaultRoomId } = this.props.chatStore;
+        let roomID = roomId;
+        if (roomId === '') {
+            roomID = defaultRoomId
+        }
         const {description, userId, filesIds} = this.state;
-        await createPost(userId, description, filesIds, roomId);
+        await createPost(userId, description, filesIds, roomID);
         this.setState({
             description: '',
             loading: false
