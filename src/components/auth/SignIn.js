@@ -5,9 +5,9 @@ import { inject, observer } from 'mobx-react';
 @observer
 class SignIn extends Component {
     state = {
-        email: '',
-        password: '',
-        error: ''
+        email                   : '',
+        password                : '',
+        error                   : ''
     }
     componentWillMount() {
         if (localStorage.getItem('token') !== null) {
@@ -39,11 +39,7 @@ class SignIn extends Component {
         return (
             <div className='container'>
                 <h2 style={{textAlign:'center'}}>Sign In</h2>
-                <form style={{
-                    width: '25%',
-                    margin: '0 auto',
-                    textAlign: 'center'
-                    }}
+                <form style={styles.formStyle}
                     onSubmit={(e) => this.handleSubmit(e,email,password)}
                 >
                     <div>
@@ -63,6 +59,14 @@ class SignIn extends Component {
             </div>
 
         )
+    }
+}
+
+const styles = {
+    formStyle: {
+        width                   : '25%',
+        margin                  : '0 auto',
+        textAlign               : 'center'
     }
 }
 

@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
 import SideBar from './SideBar';
 import MessageContainer from './MessageContainer';
+import { inject, observer } from 'mobx-react';
 
-
+@inject('chatStore')
+@observer
 export default class ChatWindow extends Component {
     
     componentWillMount() {
@@ -14,7 +16,7 @@ export default class ChatWindow extends Component {
         return(
             <div style={styles.container}>
                 <SideBar />
-                <MessageContainer />
+                <MessageContainer roomId={this.props.chatStore.roomId} />
             </div>
         )
     }
@@ -22,8 +24,8 @@ export default class ChatWindow extends Component {
 
 const styles = {
     container: {
-        display: 'flex',
-        justifyContent: 'flex-start',
-        flexWrap: 'wrap'
+        display                 : 'flex',
+        justifyContent          : 'flex-start',
+        flexWrap                : 'wrap'
     }
 }

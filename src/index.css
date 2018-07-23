@@ -99,6 +99,23 @@ body {
   justify-content: space-between;
 }
 
+.default-button {
+  border: none;
+  background-color: rgb(225, 0, 152);
+  color: white;
+  padding: 5px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.ml-15 {
+  margin-left: 15px;
+}
+
+.mr-15 {
+  margin-right: 15px;
+}
+
 /* .modal-add-users:hover {
   background: rgba(0, 0, 0, 0.15)
 } */

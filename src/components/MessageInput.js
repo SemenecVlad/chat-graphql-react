@@ -4,12 +4,13 @@ import { inject, observer } from 'mobx-react';
 @inject("chatStore")
 @observer
 class MessageInput extends Component {
+    
     state = {
-        description: '',
-        file: null,
-        filesIds: 'cjia6p4gu091u0156homvbqtt',
-        userId: localStorage.getItem('userId'),
-        loading: false
+        description             : '',
+        file                    : null,
+        filesIds                : 'cjia6p4gu091u0156homvbqtt',
+        userId                  : localStorage.getItem('userId'),
+        loading                 : false
     }
 
     handlePost = async () => {
@@ -21,8 +22,8 @@ class MessageInput extends Component {
         const {description, userId, filesIds} = this.state;
         await createPost(userId, description, filesIds, roomID);
         this.setState({
-            description: '',
-            loading: false
+            description             : '',
+            loading                 : false
         })
 
     }
@@ -101,26 +102,26 @@ class MessageInput extends Component {
 
 const styles = {
     container: {
-        width: '100%',
-        display: 'flex',
-        justifyContent: 'space-between'
+        width                   : '100%',
+        display                 : 'flex',
+        justifyContent          : 'space-between'
     },
     textarea: {
-        width: '90%',
-        height: '100px',
-        borderRadius: '5px',
-        padding: '10px',
-        borderColor: '#e4eef7'
+        width                   : '90%',
+        height                  : '100px',
+        borderRadius            : '5px',
+        padding                 : '10px',
+        borderColor             : '#e4eef7'
     },
     submitBtn: {
-        width: '8%',
-        border: 'none',
-        backgroundColor: 'rgb(225, 0, 152)',
-        color: 'white',
-        borderRadius: '5px',
-        boxSizing: 'border-box',
-        fontSize: '18px',
-        cursor: 'pointer'
+        width                   : '8%',
+        border                  : 'none',
+        backgroundColor         : 'rgb(225, 0, 152)',
+        color                   : 'white',
+        borderRadius            : '5px',
+        boxSizing               : 'border-box',
+        fontSize                : '18px',
+        cursor                  : 'pointer'
     }
 }
 

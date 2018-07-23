@@ -5,6 +5,7 @@ import Message from './Message';
 
 import Modal from 'react-modal';
 import Loader from 'react-loader-spinner';
+import {POSTS_SUBSCRIPTION} from '../index';
 
 import { inject, observer } from 'mobx-react';
 
@@ -29,10 +30,30 @@ const getFormatedDate = (timestring) => {
 @observer
 class MessageContainer extends Component {
 
+    componentDidMount() {
+        this.unsubscribe = this.props.chatStore.subscribePosts('allPosts', 'Post', POSTS_SUBSCRIPTION, this.props.chatStore.roomId);
+    }
+
+    
+
+    componentWillReceiveProps({roomId}) {
+        if(this.unsubscribe) {
+            this.unsubscribe()
+        }
+        
+        this.unsubscribe = this.props.chatStore.subscribePosts('allPosts', 'Post', POSTS_SUBSCRIPTION, this.props.chatStore.roomId);
+    }
+
+    componentWillUnmount() {
+        if(this.unsubscribe) {
+            this.unsubscribe()
+        }
+    }
+
     state = {
-        editRoom: false,
-        newRoomName: '',
-        modalIsOpen: false
+        editRoom                : false,
+        newRoomName             : '',
+        modalIsOpen             : false
     }
 
     openModal = () => {
@@ -57,24 +78,24 @@ class MessageContainer extends Component {
         if (roomId !== defaultRoomId && roomId !== '') {
             return (
                 <div>
-                    <button onClick={() => this.openModal()}>
+                    <button className="default-button mr-15" onClick={() => this.openModal()}>
                         Add users
                     </button>
 
-                    <button onClick={() => this.setState(
+                    <button className="default-button mr-15" onClick={() => this.setState(
                         prevState => ({editRoom: !prevState.editRoom}))}
                     >
                         Change name
                     </button>
 
-                    <button onClick={() => {
+                    <button className="default-button mr-15" onClick={() => {
                         leaveRoom(currentUserID, roomId);
                         changeRoom(defaultRoomId, defaultRoomName);
                     }}>
                         Leave Room
                     </button>
 
-                    <button onClick={() => {
+                    <button className="default-button" onClick={() => {
                         deleteRoom(roomId);
                         changeRoom(defaultRoomId, defaultRoomName);
                     }}>
@@ -131,7 +152,7 @@ class MessageContainer extends Component {
                                 {posts.map(post => (
                                 <Message
                                     time={getFormatedDate(post.createdAt)}
-                                    from="You"
+                                    from={localStorage.getItem("token") ? "You": "Other"}
                                     id={post.id}
                                     key={post.id}
                                     userName={post.user.name}
@@ -181,15 +202,6 @@ class MessageContainer extends Component {
                             )
                         })}</div>
                         <br/>
-                        
-                        {/* <div style={styles.userModalFooter}>
-                            <button 
-                                style={styles.userModalSubmit}
-                                
-                            >
-                                Add Users
-                            </button>
-                        </div> */}
                         
                     </Modal>
                 </div>
@@ -261,15 +273,15 @@ const styles = {
 
 const customStyles = {
     content : {
-      top                   : '40%',
-      left                  : '50%',
-      right                 : 'auto',
-      bottom                : 'auto',
-      marginRight           : '-50%',
-      transform             : 'translate(-50%, -50%)',
-      width                 : '500px',
+        top                     : '40%',
+        left                    : '50%',
+        right                   : 'auto',
+        bottom                  : 'auto',
+        marginRight             : '-50%',
+        transform               : 'translate(-50%, -50%)',
+        width                   : '500px',
       
     }
-  };
+};
 
 export default MessageContainer;

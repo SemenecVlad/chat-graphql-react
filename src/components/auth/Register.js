@@ -5,11 +5,11 @@ import { inject, observer } from 'mobx-react';
 @observer
 class Register extends Component {
     state = {
-        email: '',
-        password: '',
-        passwordConfirm: '',
-        name: '',
-        error: ''
+        email                   : '',
+        password                : '',
+        passwordConfirm         : '',
+        name                    : '',
+        error                   : ''
     }
     componentWillMount() {
         if (localStorage.getItem('token') !== null) {

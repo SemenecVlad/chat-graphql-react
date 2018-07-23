@@ -152,9 +152,15 @@ const ROOMS_SUBSCRIPTION = gql`
   }
 `;
 
-const POSTS_SUBSCRIPTION = gql`
-  subscription {
-    Post {
+export const POSTS_SUBSCRIPTION = gql`
+  subscription($roomId: ID!) {
+    Post(filter: {
+        node: {
+            room: {
+                id: $roomId
+            }
+        }
+    }) {
         mutation
         node {
           description
@@ -279,7 +285,8 @@ const chatStore = new class {
                     query: ALL_POSTS_QUERY,
                     variables: {
                         id: (this.roomId ? this.roomId : this.defaultRoomId)
-                    }
+                    },
+                    fetchPolicy: "network-only",
                 })
             },
             get postsError() {
@@ -344,7 +351,6 @@ const chatStore = new class {
             }
         });
 
-        this.subscribe('allPosts', 'Post', POSTS_SUBSCRIPTION);
         this.subscribe('allRooms', 'Room', ROOMS_SUBSCRIPTION);
     }
 
@@ -353,10 +359,43 @@ const chatStore = new class {
     @action subscribe = (prop, node, document) => this[prop].ref.subscribeToMore({
         document,
         updateQuery: (current, { subscriptionData }) => {
-            const prev = current[prop]; // Ошибка тут - возвращает массив только первой комнаты всегда
+            const prev = current[prop];
             const next = subscriptionData.data[node];
             console.log(next.mutation);
             console.log(prev)
+
+            if (next.mutation === 'CREATED') {
+                return { [prop]: prev.concat([next.node])}
+            }
+                
+            if (next.mutation === 'UPDATED') {
+                const updated = prev.slice();
+                const index = updated.findIndex(({id}) => id === next.node.id );
+                updated[index] = next.node;
+                return { [prop]: updated};
+            }
+
+            if (next.mutation === 'DELETED') {
+                return {
+                    [prop]: prev.filter(({id}) => id !== next.previousValues.id)
+                }
+            }
+        }
+    });
+
+    @action subscribePosts = (prop, node, document, roomId) => this[prop].ref.subscribeToMore({
+        document,
+        variables: {
+            roomId
+        },
+        updateQuery: (current, { subscriptionData }) => {
+            const prev = current[prop];
+            const next = subscriptionData.data[node];
+            console.log(next.mutation);
+            console.log(prev)
+            if (!subscriptionData) {
+                return { [prop]: prev };
+            }
 
             if (next.mutation === 'CREATED') {
                 return { [prop]: prev.concat([next.node])}

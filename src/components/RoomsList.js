@@ -14,9 +14,10 @@ const RoomsList = inject('chatStore')(observer(props => {
     return (
         <div className="rooms-list">
             {props.chatStore.rooms.map(room => (
-                <div onClick={() => {
-                    props.chatStore.changeRoom(room.id, room.name);
-                    console.log(props.chatStore.roomId)
+                <div onClick={
+                    () => {
+                        props.chatStore.changeRoom(room.id, room.name);
+                        console.log(props.chatStore.roomId)
                     }}
                     className="single-user" key={room.id}
                 >
