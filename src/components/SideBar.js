@@ -26,24 +26,21 @@ class SideBar extends Component {
         this.props.chatStore.createRoom(this.state.newRoomName, [localStorage.getItem('userId')]);
         this.setState({
             newRoomName: '',
-            newRoomInputVisible: false
+            modalIsOpen: false
         })
     }
 
     renderRoomInput = () => {
-        if(this.state.newRoomInputVisible) {
-            return (
-            <div>
-                <input 
+        return (
+            <div style={styles.userModalContainer}>
+                <input
+                    className="input-field"
                     onChange={(e) => this.setState({newRoomName: e.target.value})}
                     type="text" value={this.state.newRoomName}
                     placeholder="Type room name..."
                 />
-                <button onClick={this.addNewRoom}>Create</button>
             </div>
-            )
-        } 
-        
+        )
     }
 
     render() {
@@ -72,15 +69,16 @@ class SideBar extends Component {
                         </div>
                         
                         <div style={styles.userModalList}>
-                        
-                            modal content
+                            {this.renderRoomInput()}
                         </div>
-                        <br/>
+                        <div style={styles.userModalFooter}>
+                            <button className="default-button ml-15" onClick={this.addNewRoom}>Create</button>
+                        </div>
                         
                     </Modal>
 
 
-                {/* {this.renderRoomInput()} */}
+                
 
                 <RoomsList />
                 
@@ -105,8 +103,8 @@ const styles = {
         justifyContent: 'space-between'
     },
     userModalList: {
-        height                  : '400px',
-        overflowY               : 'scroll'
+        maxHeight                  : '400px',
+        // overflowY               : 'scroll'
     },
     userModalHeader: {
         display                 : 'flex',
@@ -134,6 +132,10 @@ const styles = {
         display                 : 'flex',
         justifyContent          : 'flex-end'
     },
+    userModalContainer: {
+        display                 : 'flex',
+        alignItems              : 'baseline'
+    }
 }
 
 const customModalStyles = {

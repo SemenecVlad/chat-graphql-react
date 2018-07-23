@@ -73,8 +73,18 @@ class MessageContainer extends Component {
     }
     
     renderRoomButtons = () => {
-        const { leaveRoom ,deleteRoom, changeRoom, roomId, defaultRoomId, defaultRoomName, currentUserID } = this.props.chatStore;
-        console.log(this.props.chatStore.roomName)
+        const {
+            leaveRoom,
+            deleteRoom,
+            changeRoom,
+            roomId,
+            defaultRoomId,
+            defaultRoomName,
+            currentUserID
+        } = this.props.chatStore;
+
+        console.log(this.props.chatStore.roomName);
+
         if (roomId !== defaultRoomId && roomId !== '') {
             return (
                 <div>
@@ -113,7 +123,10 @@ class MessageContainer extends Component {
             roomName,
             defaultRoomName,
             usersNotRoomMembers,
-            usersNotRoomMembersLoading
+            usersNotRoomMembersLoading,
+            updateRoomNameMutation,
+            roomId,
+            changeRoomName
         } = this.props.chatStore;
         
         return (
@@ -121,20 +134,36 @@ class MessageContainer extends Component {
 
                     <div style={styles.roomHeader}>
                     
-                        {this.state.editRoom ?
-                        <div>
-                            <input 
-                                value={this.props.chatStore.roomName}
+                        {this.state.editRoom
+                        ? <div>
+                            <input
+                                style={styles.smallInput}
+                                placeholder={this.props.chatStore.roomName}
+                                value={this.state.newRoomName}
                                 type="text"
                                 onChange={(e) => this.setState({
                                     newRoomName: e.target.value
                                 })}
                             />
-                            <button onClick={() => console.log(this.state.newRoomName)}>Change</button>
-                        </div> :
-                        <span>{roomName ? roomName : defaultRoomName}</span>
+                            <button
+                                className="default-button ml-15"
+                                onClick={() => {
+                                    console.log(this.state.newRoomName);
+                                    updateRoomNameMutation(this.state.newRoomName, roomId);
+                                    changeRoomName(this.state.newRoomName);
+                                    this.setState({
+                                        newRoomName:"",
+                                        // roomName:
+                                        editRoom:false
+                                    });
+                                    
+                                }}
+                            >
+                                Change
+                            </button>
+                        </div>
+                        : <span>{roomName ? roomName : defaultRoomName}</span>
                         }
-
 
                         <span>{postsCount.count +' users'}</span>
                         
@@ -225,6 +254,12 @@ const styles = {
         boxSizing               : 'border-box',
         display                 : 'flex',
         flexDirection           : 'column'
+    },
+    smallInput: {
+        padding: 5,
+        border: '1px solid lightgrey',
+        borderRadius: 5,
+        boxSizing: 'border-box'
     },
     messageBox: {
         padding                 : '10px',

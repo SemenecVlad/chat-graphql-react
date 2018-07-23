@@ -274,6 +274,18 @@ const ADD_USER_IN_ROOM_MUTATION = gql`
 }
 `;
 
+const UPDATE_ROOM_NAME_MUTATION = gql`
+    mutation changeRoomName($name: String!, $roomId: ID!) {
+    updateRoom(name: $name, id: $roomId) {
+      name
+      id
+      users {
+        name
+      }
+    }
+  }
+`;
+
 // Mobx store
 
 const chatStore = new class {
@@ -416,6 +428,11 @@ const chatStore = new class {
         }
     });
 
+    @action updateRoomNameMutation = (name, roomId) => client.mutate({
+        mutation: UPDATE_ROOM_NAME_MUTATION,
+        variables: { name, roomId }
+    }).catch(error => console.log(error));
+
     @action addUserInRoom = (userId, roomId) => client.mutate({
         mutation: ADD_USER_IN_ROOM_MUTATION,
         variables: { userId, roomId },
@@ -448,19 +465,7 @@ const chatStore = new class {
 
     @action createPost = (userId, description, filesIds, roomId) => client.mutate({
         mutation: CREATE_POST_MUTATION,
-        variables: { userId, description, filesIds, roomId },
-        // updateQueries: {
-        //     query: ALL_POSTS_QUERY,
-        //     variables: { id: roomId }
-        // }
-        //--!!!!!-- TODO: Remove refetch... it must correct work without it, but works only with first room(update UI),
-        // in other rooms UI doesn't updates, only when manually refresh browser, you can see changes
-        // refetchQueries: [
-        //     { 
-        //         query: ALL_POSTS_QUERY,
-        //         variables: { id: this.roomId}
-        //     }
-        // ]
+        variables: { userId, description, filesIds, roomId }
     }).catch(error => console.log(error));
 
     @action deletePost = id => client.mutate({
@@ -492,6 +497,10 @@ const chatStore = new class {
 
     @action changeRoom = (roomId, roomName) => {
         this.roomId = roomId;
+        this.roomName = roomName;
+    }
+
+    @action changeRoomName = (roomName) => {
         this.roomName = roomName;
     }
 }();

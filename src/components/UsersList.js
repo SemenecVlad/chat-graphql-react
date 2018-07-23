@@ -3,6 +3,9 @@ import { inject, observer } from 'mobx-react';
 import Loader from 'react-loader-spinner';
 
 const UsersList = inject('chatStore')(observer(props => {
+    const addNewRoomWithUser = (userName, userId) => {
+        props.chatStore.createRoom(userName, [localStorage.getItem('userId'), userId]);
+    }
     if (props.chatStore.usersLoading) {
         return (
             <div style={{display: "flex", justifyContent: "center"}}>
@@ -13,7 +16,12 @@ const UsersList = inject('chatStore')(observer(props => {
     return (
         <div className="users-list">
             {props.chatStore.users.map(user => (
-                <div className="single-user" id={user.id} key={user.id}>
+                <div
+                    className="single-user"
+                    id={user.id}
+                    key={user.id}
+                    onClick={() => addNewRoomWithUser(user.name, user.id)}
+                >
                     <div style={(user.id === localStorage.getItem('userId')) ? {backgroundColor:'green'} : {}} className="user-thumb"></div>
                     {user.name === localStorage.getItem('userName') ? <div>{user.name} - is You!</div> : user.name}
                 </div>
