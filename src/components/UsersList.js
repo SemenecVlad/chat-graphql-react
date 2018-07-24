@@ -20,10 +20,15 @@ const UsersList = inject('chatStore')(observer(props => {
                     className="single-user"
                     id={user.id}
                     key={user.id}
-                    onClick={() => addNewRoomWithUser(user.name, user.id)}
                 >
                     <div style={(user.id === localStorage.getItem('userId')) ? {backgroundColor:'green'} : {}} className="user-thumb"></div>
-                    {user.name === localStorage.getItem('userName') ? <div>{user.name} - is You!</div> : user.name}
+                    <div>{user.name === localStorage.getItem('userName') ? <div>{user.name} - is You!</div> : user.name}</div>
+                    <button 
+                        className="default-button chat-button"
+                        onClick={() => addNewRoomWithUser(user.name, user.id)}
+                    >
+                        Chat
+                    </button>
                 </div>
             ))}
         </div>

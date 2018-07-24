@@ -8,7 +8,6 @@ import { split } from 'apollo-link';
 import { getMainDefinition } from 'apollo-utilities';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 
-import gql from 'graphql-tag';
 import graphql from 'mobx-apollo';
 import { extendObservable, observable, action } from 'mobx';
 import { Provider } from 'mobx-react';
@@ -17,6 +16,25 @@ import './index.css';
 import App from './App';
 import Modal from 'react-modal';
 import registerServiceWorker from './registerServiceWorker';
+
+import {
+    EDIT_POST_MUTATION,
+    ALL_POSTS_QUERY,
+    CREATE_POST_MUTATION,
+    CREATE_ROOM_MUTATION,
+    UPDATE_ROOM_NAME_MUTATION,
+    ROOMS_SUBSCRIPTION,
+    REGISTER_MUTATION,
+    SIGN_IN_MUTATION,
+    GET_ROOMS_QUERY,
+    GET_USERS_QUERY,
+    GET_USERS_NOT_ROOM_MEMBERS,
+    GET_ROOMS_BY_USER,
+    ADD_USER_IN_ROOM_MUTATION,
+    LEAVE_ROOM_MUTATION,
+    DELETE_POST_MUTATION,
+    DELETE_ROOM_MUTATION
+} from './queries';
 
 
 // import MainStore from './store/MainStore';
@@ -47,244 +65,6 @@ const client = new ApolloClient({
     link: link,
     cache: new InMemoryCache()
 });
-
-const ALL_POSTS_QUERY = gql`
-  query AllPostsQuery($id: ID!) {
-    allPosts(filter: {
-        room: {
-          id: $id
-        }
-      }, orderBy: createdAt_ASC) {
-      id
-      description
-      createdAt
-      user{
-          name
-      }
-      files{
-          url
-      }
-    },
-    _allUsersMeta(filter: {
-        rooms_some: {
-          id: $id
-        }
-      }
-      ) {
-        count
-      }
-  }
-`;
-
-const GET_USERS_NOT_ROOM_MEMBERS = gql`
-    query getUsersByRoom($roomId: ID){
-    allUsers(filter: {
-      rooms_none: {
-        id: $roomId
-      }
-    }) {
-      id
-      name
-    }
-  }
-`;
-
-const GET_USERS_QUERY = gql`
-    query getAllUsers {
-        allUsers{
-            name
-            id
-        }
-    }
-`;
-
-const GET_ROOMS_QUERY = gql`
-    query getAllRooms {
-        allRooms {
-            id
-            name
-            _usersMeta {
-                count
-            }
-            _postsMeta {
-                count
-            }
-        }
-    } 
-`;
-
-const GET_ROOMS_BY_USER = gql`
-    query getRoomsByUser($currentUserID: ID!) {
-        allRooms(filter: {
-            users_some: {
-                id: $currentUserID
-            }
-        }) {
-            id
-            name
-            _usersMeta {
-                count
-            }
-            _postsMeta {
-                count
-            }
-        }
-    }
-`
-
-const ROOMS_SUBSCRIPTION = gql`
-  subscription {
-    Room {
-        mutation
-        node {
-          id
-          name
-          users {
-            id
-            name
-            email
-          }
-        }
-        previousValues {
-          id
-        }
-    }
-  }
-`;
-
-export const POSTS_SUBSCRIPTION = gql`
-  subscription($roomId: ID!) {
-    Post(filter: {
-        node: {
-            room: {
-                id: $roomId
-            }
-        }
-    }) {
-        mutation
-        node {
-          description
-          createdAt
-          id
-          room {
-              name
-              id
-          }
-          user {
-            name
-          }
-          files {
-            url
-          }
-        }
-        previousValues {
-          id
-        }
-    }
-  }
-`;
-
-const DELETE_ROOM_MUTATION = gql`
-  mutation DeleteRoom($id: ID!) {
-      deleteRoom(id: $id) {
-          name
-      }
-  }
-`;
-
-
-const CREATE_ROOM_MUTATION = gql`
-    mutation createRoom($name: String!, $usersIds: [ID!]) {
-        createRoom(name: $name, usersIds: $usersIds) {
-            id
-            name
-        }
-    }
-`
-
-const CREATE_POST_MUTATION = gql`
-  mutation CreatePostMutation($userId: ID! ,$description: String!,$filesIds: [ID!], $roomId: ID!) {
-    createPost(userId: $userId ,description: $description, filesIds: $filesIds, roomId: $roomId ) {
-      id
-      description
-      files{
-          id
-          url
-      }
-    }
-  }
-`;
-
-const DELETE_POST_MUTATION = gql`
-  mutation DeletePostMutation($id: ID!) {
-    deletePost(id: $id ) {
-      id
-    }
-  }
-`;
-
-const REGISTER_MUTATION = gql`
-    mutation Register($email: String!, $password: String!, $name: String!) {
-        createUser(name:$name,authProvider: {email: {email: $email, password: $password}}, roomsIds: "cjjpigz0e17eo01354las7vgc")
-        {
-            email
-            name
-            password
-        }
-    }
-`;
-
-const SIGN_IN_MUTATION = gql`
-    mutation SignIn($email: String!, $password: String!) {
-        signinUser(email: { email: $email, password: $password }) {
-            token
-            user{
-                id
-                name
-            }
-        }
-    }
-`;
-
-const LEAVE_ROOM_MUTATION = gql`
-    mutation removeUserFromRoom($userId: ID!, $roomId: ID!) {
-    removeFromRoomOnUser(usersUserId:$userId, roomsRoomId:$roomId) {
-      roomsRoom {
-        name
-        id
-      }
-      usersUser {
-        name
-        id
-      }
-    }
-  }
-`;
-
-const ADD_USER_IN_ROOM_MUTATION = gql`
-  mutation addUserToRoom($userId: ID!, $roomId: ID!) {
-  addToRoomOnUser(usersUserId: $userId, roomsRoomId: $roomId) {
-    roomsRoom {
-      name
-    }
-    usersUser {
-      name
-    }
-  }
-}
-`;
-
-const UPDATE_ROOM_NAME_MUTATION = gql`
-    mutation changeRoomName($name: String!, $roomId: ID!) {
-    updateRoom(name: $name, id: $roomId) {
-      name
-      id
-      users {
-        name
-      }
-    }
-  }
-`;
 
 // Mobx store
 
@@ -433,6 +213,11 @@ const chatStore = new class {
         variables: { name, roomId }
     }).catch(error => console.log(error));
 
+    @action editPost = (postId, description) => client.mutate({
+        mutation: EDIT_POST_MUTATION,
+        variables: { postId, description }
+    }).catch(error => console.log(error));
+
     @action addUserInRoom = (userId, roomId) => client.mutate({
         mutation: ADD_USER_IN_ROOM_MUTATION,
         variables: { userId, roomId },
@@ -492,6 +277,9 @@ const chatStore = new class {
     
     @observable roomId = "";
     @observable roomName = "";
+    @observable editMessage = false;
+    @action showEditMessageInput = () => { this.editMessage = true };
+    @action hideEditMessageInput = () => { this.editMessage = false };
     defaultRoomId = "cjjpigz0e17eo01354las7vgc";
     defaultRoomName = "general";
 

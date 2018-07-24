@@ -4,7 +4,7 @@ import { inject, observer } from 'mobx-react';
 @inject("chatStore")
 @observer
 class MessageInput extends Component {
-    
+
     state = {
         description             : '',
         file                    : null,
@@ -88,7 +88,7 @@ class MessageInput extends Component {
                     value={this.state.description}
                     onChange={e => this.setState({description: e.target.value})} />
 
-                <input type="file" onChange={this.onChange} />
+                <input type="file" accept="image/*" onChange={this.onChange} />
                 
                 <button 
                     style={styles.submitBtn} 

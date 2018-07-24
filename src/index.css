@@ -34,6 +34,17 @@ body {
   align-content: center;
   align-items: center;
   cursor: pointer;
+  position: relative;
+}
+
+.single-user .chat-button {
+  position: absolute;
+  right: 5px;
+}
+
+.users-list {
+  max-height: 450px;
+  overflow-y: scroll;
 }
 
 .user-thumb {

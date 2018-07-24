@@ -1,8 +1,15 @@
-import React from 'react';
+import React, { Component } from 'react';
 import { inject, observer } from 'mobx-react';
 
-const Message = inject('chatStore')(observer(props => {
-    let { from, userName, files, time, post: { description }, id } = props;
+@inject('chatStore')
+@observer
+class Message extends Component {
+    state = {
+        editMessage: false,
+        newMessage: this.props.post.description
+    }
+    render() {
+        let { from, userName, files, time, post: { description }, id } = this.props;
     return (
         <div
             className="messageContainer" style={(from === 'You') ? { justifyContent: 'flex-end' } : { justifyContent: 'flex-start' }}
@@ -16,20 +23,43 @@ const Message = inject('chatStore')(observer(props => {
 
                 <br />
 
-                <div>{description}</div>
+                {!this.state.editMessage
+                    ? <div>{description}</div> 
+                    : <div style={{display: 'flex', alignItems: 'flex-start'}}>
+                        <textarea
+                            style={{padding: 5, border: '1px solid lightgrey', borderRadius: 5, boxSizing: 'border-box'}}
+                            type="text"
+                            value={this.state.newMessage}
+                            onChange={(e) => this.setState({newMessage: e.target.value})}
+                        />
+                        <button 
+                            className="default-button ml-15"
+                            onClick={() => {
+                                this.props.chatStore.editPost(id, this.state.newMessage);
+                                this.setState({
+                                    editMessage: false,
+                                    newMessage: ''
+                                })
+                            }}
+                        >
+                            Change
+                        </button>
+                    </div>
+                }
 
                 {files !== undefined ? <a href={files.url} target="_blank"><img alt={files.url} src={files.url} /></a> : ''}
 
                 <div className="message-buttons">
                     <button 
                         style={styles.edit}
+                        onClick={() => this.setState({editMessage: true})}
                     >
                         Edit
                     </button>
 
                     <button
                         style={styles.delete}
-                        onClick={() => props.chatStore.deletePost(id)} 
+                        onClick={() => this.props.chatStore.deletePost(id)} 
                     >
                         Delete
                     </button>
@@ -37,8 +67,8 @@ const Message = inject('chatStore')(observer(props => {
             </div>
         </div>
     )
-
-}));
+    }
+}
 
 const styles = {
     edit: {

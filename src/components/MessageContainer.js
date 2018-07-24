@@ -5,7 +5,7 @@ import Message from './Message';
 
 import Modal from 'react-modal';
 import Loader from 'react-loader-spinner';
-import {POSTS_SUBSCRIPTION} from '../index';
+import {POSTS_SUBSCRIPTION} from '../queries';
 
 import { inject, observer } from 'mobx-react';
 
