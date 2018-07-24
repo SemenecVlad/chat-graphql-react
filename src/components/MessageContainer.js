@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 
 import MessageInput from './MessageInput';
 import Message from './Message';
+import User from './User';
 
 import Modal from 'react-modal';
 import Loader from 'react-loader-spinner';
@@ -34,8 +35,6 @@ class MessageContainer extends Component {
         this.unsubscribe = this.props.chatStore.subscribePosts('allPosts', 'Post', POSTS_SUBSCRIPTION, this.props.chatStore.roomId);
     }
 
-    
-
     componentWillReceiveProps({roomId}) {
         if(this.unsubscribe) {
             this.unsubscribe()
@@ -53,7 +52,9 @@ class MessageContainer extends Component {
     state = {
         editRoom                : false,
         newRoomName             : '',
-        modalIsOpen             : false
+        modalIsOpen             : false,
+        deleteModalIsOpen       : false,
+        usersCount              : null
     }
 
     openModal = () => {
@@ -62,6 +63,14 @@ class MessageContainer extends Component {
 
     closeModal = () => {
         this.setState({modalIsOpen: false});
+    }
+
+    openDeleteModal = () => {
+        this.setState({deleteModalIsOpen: true});
+    }
+
+    closeDeleteModal = () => {
+        this.setState({deleteModalIsOpen: false});
     }
 
     showLoader = (size) => {
@@ -75,7 +84,6 @@ class MessageContainer extends Component {
     renderRoomButtons = () => {
         const {
             leaveRoom,
-            deleteRoom,
             changeRoom,
             roomId,
             defaultRoomId,
@@ -106,8 +114,7 @@ class MessageContainer extends Component {
                     </button>
 
                     <button className="default-button" onClick={() => {
-                        deleteRoom(roomId);
-                        changeRoom(defaultRoomId, defaultRoomName);
+                        this.openDeleteModal()
                     }}>
                         Delete conversation
                     </button>
@@ -119,14 +126,17 @@ class MessageContainer extends Component {
     render() {
         const { 
             posts,
-            postsCount,
+            postsLoading,
             roomName,
             defaultRoomName,
+            usersRoomMembers,
+            usersRoomMembersLoading,
             usersNotRoomMembers,
             usersNotRoomMembersLoading,
             updateRoomNameMutation,
             roomId,
-            changeRoomName
+            changeRoomName,
+            usersRoomMembersCount
         } = this.props.chatStore;
         
         return (
@@ -165,7 +175,7 @@ class MessageContainer extends Component {
                         : <span>{roomName ? roomName : defaultRoomName}</span>
                         }
 
-                        <span>{postsCount.count +' users'}</span>
+                        <span>{usersRoomMembersCount.count ? (usersRoomMembersCount.count +' users') : ''}</span>
                         
                         {this.renderRoomButtons()}
 
@@ -175,7 +185,7 @@ class MessageContainer extends Component {
                     
                         <div style={{overflowY: 'scroll', display: 'block', height: '70vh', backgroundColor: 'aliceblue', borderRadius: '5px', marginBottom: '20px'}}>
                             
-                            {(this.props.chatStore.postsLoading) && this.showLoader(50)}
+                            {postsLoading && this.showLoader(50)}
                             
                             <div style={styles} >
                                 {posts.map(post => (
@@ -211,27 +221,78 @@ class MessageContainer extends Component {
                             </button>
                         </div>
 
+                        {usersRoomMembersLoading && this.showLoader(30)}
+                        
+                        <h4>Users in room:</h4>
+                        <div style={styles.userModalList}>
+                            {usersRoomMembers.map(user => {
+                            return(
+                                <User
+                                    id={user.id}
+                                    key={user.id}
+                                    name={user.name}
+                                    btnName="Remove"
+                                    btnClick={() => {
+                                        this.props.chatStore.leaveRoom(user.id, this.props.chatStore.roomId)
+                                    }}
+                                />
+                            )
+                            })}
+                        </div>
+
                         {usersNotRoomMembersLoading && this.showLoader(30)}
                         
-                        <div style={styles.userModalList}>{usersNotRoomMembers.map(user => {
+                        <h4>Users not in room:</h4>
+                        <div style={styles.userModalList}>
+                            
+                            {usersNotRoomMembers.map(user => {
                             return(
-                                <div className="modal-add-users" id={user.id} key={user.id}>
-                                    {user.name}
-                                    <button 
-                                        style={styles.userModalSubmit}
-                                        onClick={() => {
-                                            this.props.chatStore.addUserInRoom(user.id, this.props.chatStore.roomId).then(
-                                                console.log('User added '+ user.name)
-                                            )
-                                        }}
-                                    >
-                                        Add User
-                                    </button>
-                                </div>
+                                <User
+                                    id={user.id}
+                                    key={user.id}
+                                    name={user.name}
+                                    btnName="Add User"
+                                    btnClick={() => {
+                                        this.props.chatStore.addUserInRoom(user.id, this.props.chatStore.roomId)
+                                    }}
+                                />
                             )
-                        })}</div>
+                            })}
+                        </div>
                         <br/>
                         
+                    </Modal>
+
+                    <Modal
+                        isOpen={this.state.deleteModalIsOpen}
+                        contentLabel="Add Users"
+                        style={customStyles}
+                    >
+                        <div>
+                            <div style={styles.userModalHeader}>
+                                <h3 style={{margin: 0}}>Are You Really want to delete room?</h3>
+                                <button
+                                    style={styles.userModalClose}
+                                    onClick={this.closeDeleteModal}
+                                >
+                                    <span style={styles.userModalCloseIcon}>+</span>
+                                </button>
+                            </div>
+
+                            <button
+                                className="default-button mr-15"
+                                onClick={() => {
+                                    this.props.chatStore.deleteRoom(roomId);
+                                    this.props.chatStore.changeRoom(this.props.chatStore.defaultRoomId, defaultRoomName);
+                                    this.closeDeleteModal()
+                                }}
+                            >Delete</button>
+                            <button
+                                className="default-button"
+                                style={{background: 'white', color: 'black', border: '1px solid lightgray'}}
+                                onClick={() => this.closeDeleteModal()}
+                            >Cancel</button>
+                        </div>
                     </Modal>
                 </div>
             )
@@ -268,8 +329,8 @@ const styles = {
         flexDirection           : 'column',
     },
     userModalList: {
-        height                  : '400px',
-        overflowY               : 'scroll'
+        maxHeight                  : '400px',
+        marginBottom               : '10px'
     },
     userModalHeader: {
         display                 : 'flex',

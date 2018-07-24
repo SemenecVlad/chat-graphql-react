@@ -41,6 +41,22 @@ export const GET_USERS_NOT_ROOM_MEMBERS = gql`
   }
 `;
 
+export const GET_USERS_ROOM_MEMBERS = gql`
+  query getUsersByRoom($roomId: ID){
+  allUsers(filter: {
+    rooms_some: {
+      id: $roomId
+    }
+  }) {
+    id
+    name
+  }
+  _allUsersMeta(filter: {rooms_some: {id: $roomId}}) {
+    count
+  }
+}
+`;
+
 export const GET_USERS_QUERY = gql`
     query getAllUsers {
         allUsers{
@@ -82,7 +98,22 @@ export const GET_ROOMS_BY_USER = gql`
             }
         }
     }
-`
+`;
+
+export const USERS_SUBSCRIPTION= gql`
+  subscription {
+  User {
+      mutation
+      node {
+        id
+        name
+      }
+      previousValues {
+        id
+      }
+  }
+}
+`;
 
 export const ROOMS_SUBSCRIPTION = gql`
   subscription {

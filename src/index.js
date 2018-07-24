@@ -29,11 +29,13 @@ import {
     GET_ROOMS_QUERY,
     GET_USERS_QUERY,
     GET_USERS_NOT_ROOM_MEMBERS,
+    GET_USERS_ROOM_MEMBERS,
     GET_ROOMS_BY_USER,
     ADD_USER_IN_ROOM_MUTATION,
     LEAVE_ROOM_MUTATION,
     DELETE_POST_MUTATION,
-    DELETE_ROOM_MUTATION
+    DELETE_ROOM_MUTATION,
+    USERS_SUBSCRIPTION
 } from './queries';
 
 
@@ -90,9 +92,6 @@ const chatStore = new class {
             get posts() {
                 return (this.allPosts.data && this.allPosts.data.allPosts) || [];
             },
-            get postsCount() {
-                return (this.allPosts.data && this.allPosts.data._allUsersMeta) || [];
-            },
             get allUsers() {
                 return graphql({
                     client,
@@ -123,6 +122,24 @@ const chatStore = new class {
             get usersNotRoomMembersLoading() {
                 return (this.AllusersNotRoomMembers.loading);
             },
+            get AllusersRoomMembers() {
+                return graphql({
+                    client,
+                    query: GET_USERS_ROOM_MEMBERS,
+                    variables: {
+                        roomId: this.roomId
+                    }
+                });
+            },
+            get usersRoomMembers() {
+                return (this.AllusersRoomMembers.data && this.AllusersRoomMembers.data.allUsers) || [];
+            },
+            get usersRoomMembersCount() {
+                return (this.AllusersRoomMembers.data && this.AllusersRoomMembers.data._allUsersMeta) || [];
+            },
+            get usersRoomMembersLoading() {
+                return (this.AllusersRoomMembers.loading);
+            },
             get allRooms() {
                 return graphql({
                     client,
@@ -144,6 +161,7 @@ const chatStore = new class {
         });
 
         this.subscribe('allRooms', 'Room', ROOMS_SUBSCRIPTION);
+        this.subscribe('allUsers', 'User', USERS_SUBSCRIPTION);
     }
 
     currentUserID = localStorage.getItem('userId');
@@ -223,7 +241,16 @@ const chatStore = new class {
         variables: { userId, roomId },
         refetchQueries: [
             { 
-                query: GET_ROOMS_QUERY
+                query: GET_USERS_ROOM_MEMBERS,
+                variables: {
+                    roomId: this.roomId
+                }
+            },
+            {
+                query: GET_USERS_NOT_ROOM_MEMBERS,
+                variables: {
+                    roomId: this.roomId
+                }
             }
         ]
     }).catch(error => console.log(error));
@@ -234,6 +261,18 @@ const chatStore = new class {
         refetchQueries: [
             { 
                 query: GET_ROOMS_QUERY
+            },
+            { 
+                query: GET_USERS_ROOM_MEMBERS,
+                variables: {
+                    roomId: this.roomId
+                }
+            },
+            {
+                query: GET_USERS_NOT_ROOM_MEMBERS,
+                variables: {
+                    roomId: this.roomId
+                }
             }
         ]
     }).catch(error => console.log(error));
